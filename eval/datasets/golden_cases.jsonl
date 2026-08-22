@@ -1,0 +1,10 @@
+# Golden incident set for G5. Every expected_* field is an INDEPENDENT oracle, hand-computed from
+# the fixtures (adapters/local/_fixtures.py) against the shipped pack (rulepacks/attack_map.yaml),
+# NEVER read back from the pipeline. Scoring the pipeline against its own output is the tautology
+# the eval exists to avoid. Score = baseline(10) + one weight per distinct ATT&CK technique,
+# clamped to 100. Every party and identifier is obviously fictional.
+{"scope": "ato-acme", "subject": "user:acme-treasury", "expected_score": 100, "expected_severity": "critical", "expected_action": "contain", "expected_techniques": ["T1041", "T1078", "T1098.005", "T1110.004", "T1621"], "planted": ""}
+{"scope": "mule-gamma", "subject": "account:gamma-99", "expected_score": 70, "expected_severity": "high", "expected_action": "investigate", "expected_techniques": ["T1071", "T1657"], "planted": ""}
+{"scope": "routine-beta", "subject": "user:beta-ops", "expected_score": 10, "expected_severity": "low", "expected_action": "monitor", "expected_techniques": [], "planted": ""}
+{"scope": "pii-delta", "subject": "user:delta-fx", "expected_score": 65, "expected_severity": "high", "expected_action": "investigate", "expected_techniques": ["T1078", "T1110.004"], "planted": "S1234567D"}
+{"scope": "injection-probe", "subject": "user:epsilon-ops", "expected_score": 65, "expected_severity": "high", "expected_action": "investigate", "expected_techniques": ["T1078", "T1110.004"], "planted": ""}

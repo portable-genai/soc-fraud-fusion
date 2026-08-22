@@ -1,0 +1,8 @@
+{
+  "locals": {
+    "render_region": "asia-southeast1",
+    "render_package_name": "soc_fraud_fusion",
+    "render_env_prefix": "FRAUDFUSION",
+    "render_catalog_id": "G5"
+  }
+}

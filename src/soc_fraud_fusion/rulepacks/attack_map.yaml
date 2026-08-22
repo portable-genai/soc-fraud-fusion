@@ -1,0 +1,87 @@
+# SOC fraud-fusion ATT&CK map and scoring policy (framework-parameterised CONFIG, never code).
+#
+# This file is the reference pack. It carries two different kinds of thing, kept apart on purpose:
+#
+#   * `techniques`  maps each source-system SIGNAL TYPE onto one MITRE ATT&CK technique (tactic,
+#                   id and name) plus a score WEIGHT. The technique ids and names are real ATT&CK
+#                   framework references, named so a SOC analyst can find them; the mapping is a
+#                   deterministic lookup, never an LLM guess.
+#   * `policy`      the scoring numbers: the baseline and the band thresholds. These are
+#                   ADOPTER-OWNED policy, not quoted from any framework, shipped with defaults
+#                   equal to this reference. A SOC tightens its own banding by editing this file
+#                   (or pointing `attack_map.pack_path` at its own), never by editing the engine.
+#
+# `citations` names the framework instrument each technique comes from. `url` is deliberately
+# blank: adopters point these at their own ATT&CK mirror. Nothing here is a verbatim quotation;
+# each snippet is a short paraphrase so a reviewer can find the source. Every alert, entity and
+# identifier elsewhere in this repo is obviously fictional; the ATT&CK names below are the one
+# place real framework names are used, because a technique id that cannot be named is useless to
+# a responder.
+
+version: "2026-08-05"
+
+# --------------------------------------------------------------------------- #
+# Framework instruments cited by the technique mappings below.
+# --------------------------------------------------------------------------- #
+citations:
+  attack_enterprise:
+    title: "MITRE ATT&CK Enterprise matrix (v15), technique catalogue"
+    snippet: >-
+      MITRE ATT&CK is a globally accessible knowledge base of adversary tactics and techniques
+      based on real-world observation; each technique carries a stable id, a tactic and a name.
+
+# --------------------------------------------------------------------------- #
+# Adopter-owned scoring policy. The engine reads these numbers and branches on nothing else.
+# --------------------------------------------------------------------------- #
+policy:
+  baseline: 10
+  medium_at: 30
+  high_at: 55
+  critical_at: 80
+
+# --------------------------------------------------------------------------- #
+# Signal-type -> ATT&CK technique map. `weight` is the score uplift a distinct technique adds.
+# --------------------------------------------------------------------------- #
+techniques:
+  - signal_type: credential_stuffing
+    technique_id: T1110.004
+    tactic: credential-access
+    name: "Brute Force: Credential Stuffing"
+    weight: 25
+    citation: attack_enterprise
+  - signal_type: impossible_travel
+    technique_id: T1078
+    tactic: initial-access
+    name: "Valid Accounts"
+    weight: 30
+    citation: attack_enterprise
+  - signal_type: mfa_fatigue
+    technique_id: T1621
+    tactic: credential-access
+    name: "Multi-Factor Authentication Request Generation"
+    weight: 25
+    citation: attack_enterprise
+  - signal_type: new_device_enrolment
+    technique_id: T1098.005
+    tactic: persistence
+    name: "Account Manipulation: Device Registration"
+    weight: 20
+    citation: attack_enterprise
+  - signal_type: data_exfiltration
+    technique_id: T1041
+    tactic: exfiltration
+    name: "Exfiltration Over C2 Channel"
+    weight: 35
+    citation: attack_enterprise
+  - signal_type: payment_mule_fanout
+    technique_id: T1657
+    tactic: impact
+    name: "Financial Theft"
+    weight: 30
+    citation: attack_enterprise
+  - signal_type: malware_beacon
+    technique_id: T1071
+    tactic: command-and-control
+    name: "Application Layer Protocol"
+    weight: 30
+    citation: attack_enterprise

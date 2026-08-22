@@ -1,0 +1,112 @@
+# SOC Fraud Fusion Copilot (G5) runtime configuration.
+#
+# Loaded by `src/soc_fraud_fusion/config.py`. Point at a different file with
+# FRAUDFUSION_SETTINGS; a path that is named but missing is a boot error, not
+# a silent fall-back to built-in defaults.
+#
+# `${VAR}` and `${VAR:-default}` resolve in THREE states: unset takes the default written here,
+# SET-AND-EMPTY resolves to empty (an operator who emptied a value expressed an intent, and it
+# names nothing), and a set value wins. This file holds env var NAMES and non-secret defaults
+# only: no secret value is ever committed here.
+
+# Data residency. Selected once and shared by the runtime and Terraform.
+region: ${GCP_REGION:-asia-southeast1}
+
+# Tenant partition asserted on outbound reviews when the verified principal carries none.
+# (Built as one template expression: a literal "${" immediately before a template opener is
+# ambiguous to render, so the whole reference is produced by the expression instead.)
+tenant: ${FRAUDFUSION_TENANT:-}
+
+# Local profile stores. ":memory:" is the ephemeral, deterministic default the gate uses; a
+# deployment points this at a durable path.
+audit_path: ${FRAUDFUSION_AUDIT_PATH:-:memory:}
+
+# The external head anchor for the WORM audit chain (practices check C9). The hash chain cannot
+# detect a TRUNCATED TAIL by itself: dropping the newest rows leaves a shorter chain that
+# verifies perfectly. Point this at a file on a DIFFERENT volume, under different credentials,
+# from audit_path, and every append also writes the chain head there. Empty (the default) means
+# no anchor, which is correct for the ephemeral ":memory:" store and wrong for a durable one.
+audit_anchor_path: ${FRAUDFUSION_AUDIT_ANCHOR:-}
+
+# The audience the managed (gcp) IAP identity adapter verifies the assertion AGAINST: the
+# IAP-protected resource, "/projects/<NUM>/global/backendServices/<ID>" behind an HTTPS load
+# balancer. It is per-deployment, so it is configuration and never a literal in the adapter.
+# Three states, and UNSET and SET-AND-EMPTY land in the same place on purpose: both resolve to
+# empty, and an empty audience REFUSES every caller rather than verifying without one.
+# google-auth documents audience=None as "the audience is not verified", which accepts ANY
+# Google-signed OIDC token, from any project or any app, and reads its email as a principal.
+iap_audience: ${FRAUDFUSION_IAP_AUDIENCE:-}
+
+# Rule R8: where an escalated result is routed for human review. The managed profile REFUSES to
+# swallow an escalation when this is empty, so a producer cannot ship with R8 unwired.
+# The outbound S2S credentials are HRZ7_S2S_TOKEN / HRZ7_S2S_SIGNING_KEY (see .env.secrets.example),
+# deliberately distinct from this service's own inbound FRAUDFUSION_S2S_TOKEN.
+review_url: ${HRZ_HUMAN_REVIEW_URL:-}
+
+# The ATT&CK map + scoring pack. Empty means the shipped reference pack at
+# rulepacks/attack_map.yaml; a SOC points this at its own file to retune banding without a code
+# edit. The pack is DATA a SOC lead diffs, and the engine branches on nothing else.
+attack_pack_path: ${FRAUDFUSION_ATTACK_PACK:-}
+
+# Managed (gcp) adapter targets. All unused offline (the local family reads none of them), so they
+# default empty and a deployment fills them in. Region above is shared by every managed call.
+project_id: ${FRAUDFUSION_PROJECT_ID:-}
+bigquery_dataset: ${FRAUDFUSION_BQ_DATASET:-}
+retrieval_datastore: ${FRAUDFUSION_RETRIEVAL_DATASTORE:-}
+model_armor_template: ${FRAUDFUSION_MODEL_ARMOR_TEMPLATE:-}
+generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-2.5-flash}
+
+# The per-port adapter map: the ONLY place a binding lives, so switching the whole stack is a
+# configuration change rather than a code edit. Every port must bind every profile; the loader
+# refuses a partial block and `tests/test_settings_file.py` fails the build if this drifts from
+# `config.DEFAULT_BINDINGS`.
+adapters:
+  alerts:
+    local: soc_fraud_fusion.adapters.local.alerts:LocalAlertFeed
+    gcp: soc_fraud_fusion.adapters.gcp.alerts:BigQueryAlertFeed
+    onprem: soc_fraud_fusion.adapters.onprem.alerts:OnPremAlertFeed
+  audit:
+    local: soc_fraud_fusion.adapters.local.audit:LocalAuditAdapter
+    gcp: soc_fraud_fusion.adapters.gcp.audit:CloudAuditAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.audit:OnPremAuditAdapter
+  generation:
+    local: soc_fraud_fusion.adapters.local.generation:LocalGeneration
+    gcp: soc_fraud_fusion.adapters.gcp.generation:GeminiGeneration
+    onprem: soc_fraud_fusion.adapters.onprem.generation:OnPremGeneration
+  grounding:
+    local: soc_fraud_fusion.adapters.local.grounding:LocalGrounding
+    gcp: soc_fraud_fusion.adapters.gcp.grounding:GroundingSearchAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.grounding:OnPremGrounding
+  identity:
+    local: soc_fraud_fusion.adapters.local.identity:LocalIdentityAdapter
+    gcp: soc_fraud_fusion.adapters.gcp.identity:IapIdentityAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.identity:OnPremIdentityAdapter
+  retrieval:
+    local: soc_fraud_fusion.adapters.local.retrieval:LocalRetrieval
+    gcp: soc_fraud_fusion.adapters.gcp.retrieval:Hrz2RetrievalAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.retrieval:OnPremRetrieval
+  review_router:
+    local: soc_fraud_fusion.adapters.local.review_router:LocalReviewRouter
+    gcp: soc_fraud_fusion.adapters.gcp.review_router:CloudReviewRouter
+    onprem: soc_fraud_fusion.adapters.onprem.review_router:OnPremReviewRouter
+
+  # Tracing. Which BACKEND a deployed profile exports to is not a binding: the gcp
+  # adapter reads OTEL_EXPORTER_OTLP_ENDPOINT and sends OTLP to the Hrz5 collector when it
+  # is set, straight to Cloud Trace when it is not. Tracing is not essential to
+  # correctness, so onprem is ABSENT rather than fatal, unlike the other placeholders.
+  tracer:
+    local: soc_fraud_fusion.adapters.local.tracer:LocalNoopTracerAdapter
+    gcp: soc_fraud_fusion.adapters.gcp.tracer:CloudTracerAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.tracer:OnPremTracerAdapter
+
+  # The promotion authority (Hrz4). The local adapter scores offline but REFUSES to
+  # promote: a promotion certified by a laptop with no quality service is certified by
+  # nothing.
+  evaluation:
+    local: soc_fraud_fusion.adapters.local.evaluation:LocalOfflineEvalAdapter
+    gcp: soc_fraud_fusion.adapters.gcp.evaluation:ManagedEvalGateAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.evaluation:OnPremEvalAdapter
+  safety:
+    local: soc_fraud_fusion.adapters.local.safety:LocalSafety
+    gcp: soc_fraud_fusion.adapters.gcp.safety:ModelArmorSafetyAdapter
+    onprem: soc_fraud_fusion.adapters.onprem.safety:OnPremSafety
