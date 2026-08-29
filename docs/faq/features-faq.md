@@ -73,7 +73,7 @@ rebuild these in a fork:
 | Agent registry, versioning, identity, entitlements | **Hrz3** | publishes its A2A card at `/.well-known/agent-card.json`; registering it is the open R4 item |
 | AI-quality / eval / model-risk promotion gate | **Hrz4** | `eval/run_eval.py --mode gate` delegates the verdict under bundle `soc-fraud-fusion`; the offline smoke run mirrors its thresholds |
 | Observability + immutable WORM audit + FinOps | **Hrz5** | exports spans OTLP to its collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set; the shared audit sink is the open R2 item |
-| Human review / maker-checker console | **Hrz7** | routes EVERY incident's escalation to it (R8); you wire `HRZ_HUMAN_REVIEW_URL`, you do not build a console |
+| Human review / maker-checker console | **Hrz7** | routes EVERY incident's escalation to it (R8); you wire `HUMAN_REVIEW_URL`, you do not build a console |
 | Runtime guardrail gateway | **Hrz1** | deliberately NOT in this path: the G5 catalog row names Model Armor in the stack and omits Hrz1, so screening runs through this repo's own `SafetyPort` (`ports/safety.py`) |
 | Architecture and requirements intake validation | **Rsk3** | an intake action, not a code control (rule R6): record the validation reference in `COMPLIANCE.md` |
 | Marketing / financial-promotions claim check | **Mkt6** | not applicable (rule R7, P-13): this service produces no customer-facing output |

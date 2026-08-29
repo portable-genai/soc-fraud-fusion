@@ -86,7 +86,7 @@ No literal secret material. `config/settings.yaml` holds only `${VAR:-default}` 
 tokens (project id, region, datastore, Model Armor template, model id, local paths);
 `.env.example` documents the non-secret names; `.env.secrets.example` documents the secret NAMES
 with placeholders. Inbound and outbound credentials are deliberately distinct variables
-(`FRAUDFUSION_S2S_TOKEN` for this service as callee, `HRZ7_S2S_TOKEN` and `HRZ7_S2S_SIGNING_KEY`
+(`FRAUDFUSION_S2S_TOKEN` for this service as callee, `HUMAN_REVIEW_S2S_TOKEN` and `HUMAN_REVIEW_S2S_SIGNING_KEY`
 for the outbound Hrz7 calls), so one cannot be reused as the other. On the deploy side,
 `additional_secret_env` in `infra/terraform/variables.tf` mounts secrets by immutable version id
 and refuses `"latest"`, and it refuses any name reserved by `naming.tf` so a secret cannot shadow
