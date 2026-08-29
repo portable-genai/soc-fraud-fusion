@@ -190,7 +190,7 @@ owned by sibling platform services; integrate rather than rebuild them (see
   is not. Binding the audit stream to the shared sink is the open R2 item.
 - **Hrz7** human-review and maker-checker console: EVERY incident is consequential, so every one
   is routed there over the shared `review-kit` (rule R8) in the same call that produced it.
-  You wire your `HRZ_HUMAN_REVIEW_URL`; you do not re-implement the console.
+  You wire your `HUMAN_REVIEW_URL`; you do not re-implement the console.
 
 The guardrail gateway (**Hrz1**) is deliberately **not** in this path, and that is a real design
 decision rather than an omission: this repo's catalog row names Model Armor in its stack and omits
@@ -216,6 +216,6 @@ the alert sources, it does not own the review console, and it does not own the p
 - [ ] Replaced every fixture in `adapters/local/_fixtures.py` with your own synthetic data.
 - [ ] Rebuilt `eval/datasets/golden_cases.jsonl` and re-derived its oracle, and kept `tests/unit/test_not_falsely_green.py` honest.
 - [ ] Moved `FRAUDFUSION_AUDIT_PATH` off `:memory:` and set `FRAUDFUSION_AUDIT_ANCHOR` on a different volume.
-- [ ] Set `HRZ_HUMAN_REVIEW_URL` and decided which sibling systems (Hrz2, Hrz3, Hrz4, Hrz5, Hrz7) you integrate vs stub.
+- [ ] Set `HUMAN_REVIEW_URL` and decided which sibling systems (Hrz2, Hrz3, Hrz4, Hrz5, Hrz7) you integrate vs stub.
 - [ ] Reviewed the deploy posture: Dockerfile, `org_policy.tf`, `kms.tf`, `logging_worm.tf` retention and lock, `vpc_sc.tf` dry-run, and the bind address.
 - [ ] Recorded your baseline upstream tag so you can take future fixes.
