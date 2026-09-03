@@ -197,7 +197,7 @@ def run_gate(dataset: Path) -> tuple[EvalReport, bool]:
     client = PromotionGateClient(
         os.environ.get("FRAUDFUSION_QUALITY_URL", "http://localhost:8084"),
         bundle=_BUNDLE,
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
     )
     return client.evaluate(str(dataset)), client.gate(str(dataset))
 

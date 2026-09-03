@@ -109,7 +109,7 @@ Three things, stated rather than hidden. First, tamper-evidence is scoped to wha
 can prove: hash chaining plus an external anchor catches edits, reorders, deletions and truncation,
 but production tamper-evidence is the locked WORM bucket's job (Hrz5 in the enterprise), and
 `portability_demo.py` says so. Second, the managed narration and grounding paths depend on a
-Gemini model id (`generation_model`, defaulting to the floating alias `gemini-2.5-flash`); a fork
+Gemini model id (`generation_model`, defaulting to the floating alias `gemini-3.5-flash`); a fork
 that exits to its own hosted model gets different prose, though not different figures, because the
 engine owns every number. Third, the `local` profile is a real offline system but it is not a
 production one: fixture alerts, a marker-list safety heuristic and a template narrator are honest

@@ -54,7 +54,7 @@ project_id: ${FRAUDFUSION_PROJECT_ID:-}
 bigquery_dataset: ${FRAUDFUSION_BQ_DATASET:-}
 retrieval_datastore: ${FRAUDFUSION_RETRIEVAL_DATASTORE:-}
 model_armor_template: ${FRAUDFUSION_MODEL_ARMOR_TEMPLATE:-}
-generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-2.5-flash}
+generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-3.5-flash}
 
 # The per-port adapter map: the ONLY place a binding lives, so switching the whole stack is a
 # configuration change rather than a code edit. Every port must bind every profile; the loader
