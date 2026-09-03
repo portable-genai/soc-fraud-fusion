@@ -11,7 +11,7 @@ is a bounded, replaceable component that narrates what the engine already decide
   drafts two things through `GenerationPort` (`ports/generation.py`): a cited **incident summary**
   and a **response runbook** as an ordered list of steps. Under the `gcp` profile that is Gemini
   on Vertex AI: `config/settings.yaml` carries the key
-  `generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-2.5-flash}`, and
+  `generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-3.5-flash}`, and
   `adapters/gcp/generation.py` passes that value as `model=` to
   `client.models.generate_content`. The prompt is assembled in `GeminiGeneration._prompt` and
   instructs the model to use only the facts supplied and to invent no figure, technique or
@@ -94,9 +94,9 @@ model is used zero-shot behind a prompt built from validated facts.
 ## Remaining controls (TODO, repo owner)
 
 - **Pin the model id and version, in one place** (P-07). `generation_model` defaults to the
-  floating alias `gemini-2.5-flash`, which is not a version pin: what serves can change with no
+  floating alias `gemini-3.5-flash`, which is not a version pin: what serves can change with no
   diff. Pin a dated snapshot and record it here. Note also that `eval/run_eval.py` hardcodes
-  `model="gemini-2.5-flash"` in the `PromotionGateClient` call while the runtime reads the
+  `model="gemini-3.5-flash"` in the `PromotionGateClient` call while the runtime reads the
   setting, so today the promotion record and the deployed model can drift apart; make them read
   one source.
 - **Pin the generation parameters and the response shape.** No temperature, top-p, seed, token cap

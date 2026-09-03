@@ -455,7 +455,7 @@ class Settings:
     #: Model Armor template the managed safety adapter screens through. Unused offline.
     model_armor_template: str = ""
     #: The model id the managed narrator calls. Unused offline.
-    generation_model: str = "gemini-2.5-flash"
+    generation_model: str = "gemini-3.5-flash"
     #: Was :attr:`profile` chosen DELIBERATELY, or merely inherited because nobody set the
     #: variable? Only :meth:`load` can set this False; direct construction names the profile in
     #: code and is deliberate by definition. The seeded-persona identity adapter refuses to
@@ -548,7 +548,7 @@ class Settings:
             bigquery_dataset=str(data.get("bigquery_dataset") or ""),
             retrieval_datastore=str(data.get("retrieval_datastore") or ""),
             model_armor_template=str(data.get("model_armor_template") or ""),
-            generation_model=str(data.get("generation_model") or "gemini-2.5-flash"),
+            generation_model=str(data.get("generation_model") or "gemini-3.5-flash"),
             adapters=_bindings_from(data),
         )
 
