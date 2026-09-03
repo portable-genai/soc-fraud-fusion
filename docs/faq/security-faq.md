@@ -27,7 +27,7 @@ audience is three-state and BOTH unset and emptied refuse every caller, because 
 documents `audience=None` as "the audience is not verified", which would accept any Google-signed
 OIDC token from any project. `tests/unit/test_iap_identity.py` runs in every gate;
 `tests/unit/test_iap_crypto_matrix.py` runs the real verifier over locally minted assertions in
-the `iap-verifier` CI job (wired by the `iap-matrix-path` input in the hosted Cloud Build check)
+the `iap-verifier` CI job (wired by the `iap-matrix-path` input in the hosted GitHub Actions check)
 and fails if it skips. Under `local` the personas are seeded dev
 identities from `X-Dev-Persona` that authenticate nobody; under `onprem` the adapter refuses.
 

@@ -80,7 +80,7 @@ It is guarded, and the guard is outside `make gate` on purpose. A demo step exis
 places (`demo.STEPS` and `walkthrough.CHECKS`) and `tests/unit/test_demo_surface.py` holds the two
 sets equal inside the offline gate, so a claim the demo narrates but nobody verifies cannot exist.
 `make demo-selftest` then runs the whole eight-step arc headless against the REAL server over
-loopback and exits non-zero when a claim stops being true; the hosted Cloud Build check runs
+loopback and exits non-zero when a claim stops being true; the hosted GitHub Actions check runs
 it, plus `make portability`, `make demo-static` and `make docs-check`, on every push. Put the
 numbers a check reads in the step's `facts` dict, never only in the rendered rows: a check that
 parses prose breaks on a wording change. Do NOT move the demo into `make gate`; the gate proves the
@@ -88,7 +88,7 @@ service and must stay fast and offline.
 
 ### Does the CI run for my fork out of the box?
 
-Yes. the hosted Cloud Build check is a thin caller of a shared reusable hard-gate workflow pinned
+Yes. the hosted GitHub Actions check is a thin caller of a shared reusable hard-gate workflow pinned
 to a TAG, and it references no `secrets.` at all, so a fork is green immediately with no org
 secrets and no cloud project. The gate itself (`make gate` = `lint test eval`) is deliberately
 offline and credential-free: no network, no cloud SDK. Anything that needs a live service lives in
