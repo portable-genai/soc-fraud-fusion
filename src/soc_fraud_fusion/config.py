@@ -430,7 +430,7 @@ class Settings:
     #: that verifies perfectly. Empty means no anchor, which is right for the ephemeral
     #: ``:memory:`` store and wrong for anything durable.
     audit_anchor_path: str = ""
-    #: Base URL of the Hrz7 Human-Review console the R8 producer path submits to.
+    #: Base URL of the human-review-console Human-Review console the R8 producer path submits to.
     review_url: str = ""
     #: The audience the managed IAP identity adapter verifies the signed assertion AGAINST: the
     #: IAP-protected resource, ``/projects/<NUM>/global/backendServices/<ID>`` behind an HTTPS
@@ -450,7 +450,8 @@ class Settings:
     project_id: str = ""
     #: BigQuery dataset the managed alert feed reads. Unused offline.
     bigquery_dataset: str = ""
-    #: Hrz2 File Search data store the managed retrieval adapter queries. Unused offline.
+    #: enterprise-knowledge-base File Search data store the managed retrieval adapter queries.
+    #: Unused offline.
     retrieval_datastore: str = ""
     #: Model Armor template the managed safety adapter screens through. Unused offline.
     model_armor_template: str = ""

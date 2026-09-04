@@ -26,11 +26,11 @@ Locked decisions, pinned stack, contracts. This document is the deepest authorit
   discarded on failure for a deterministic fallback.
 - **Deterministic-vs-LLM split**: alerts arrive as raw cited rows through `AlertFeedPort`; the
   engine reconciles them into one incident and maps signals to ATT&CK techniques from pack data
-  (`rulepacks/attack_map.yaml`); `RetrievalPort` (runbook / threat-intel, Hrz2) and `GroundingPort`
+  (`rulepacks/attack_map.yaml`); `RetrievalPort` (runbook / threat-intel, `enterprise-knowledge-base`) and `GroundingPort`
   (IOC / CVE) inform NARRATION only, never the score; `SafetyPort` (Model Armor) screens input
   before it reaches `GenerationPort`, so injected alert text never reaches the model.
 - **Maker-checker (P-06) and routing (R8)**: EVERY incident is consequential, so it sets
-  `requires_human_review=True` AND is routed through `ReviewRouterPort` to the Hrz7 console in the
+  `requires_human_review=True` AND is routed through `ReviewRouterPort` to the `human-review-console` in the
   same request; the system never executes containment. The flag alone is not the escalation. The
   response carries `review_ref`, so a caller can tell a routed escalation from one that stopped
   here. The managed adapter refuses to run with no console configured rather than swallowing it.
@@ -73,7 +73,7 @@ Locked decisions, pinned stack, contracts. This document is the deepest authorit
   resolved server-side and the resolved headers are attached afterwards. The service credential
   is read from the server environment only. Framing and CORS are allowlists that refuse a
   wildcard however it is written, and an empty allowlist denies rather than opening up.
-- **Eval**: `--mode smoke` is the offline pre-merge check; `--mode gate` is the Hrz4 promotion
+- **Eval**: `--mode smoke` is the offline pre-merge check; `--mode gate` is the `model-quality-gate` promotion
   authority. The gate fails closed.
 - **Tests**: split into `unit`, `contract` and `integration`. The offline gate runs the first
   two; every integration module is marked, and that marking is itself enforced.

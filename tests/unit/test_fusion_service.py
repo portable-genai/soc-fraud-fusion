@@ -240,7 +240,7 @@ def test_no_planted_identifier_reaches_the_model_the_worm_record_or_the_console(
         default=str,
     )
     for token in planted:
-        assert token not in outbound, f"{token} left for Hrz7 in {outbound!r}"
+        assert token not in outbound, f"{token} left for human-review-console in {outbound!r}"
 
 
 def test_narration_is_grounded_when_retrieval_returns_passages() -> None:

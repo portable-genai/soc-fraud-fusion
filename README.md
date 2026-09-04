@@ -30,7 +30,7 @@ and a containment RECOMMENDATION. The model never produces the score, the band, 
 or the recommendation: it only narrates a cited incident summary and a grounded response runbook,
 and that draft is schema-validated and discarded on failure for a deterministic fallback. Prompt
 injection is screened (Model Armor, `ports/safety.py`) before any text reaches the model, and
-every incident is consequential, so it is always routed to Hrz7 for human disposition (rule R8).
+every incident is consequential, so it is always routed to `human-review-console` for human disposition (rule R8).
 The system never executes containment itself.
 
 The offline gate is SDK-free and is what CI runs (via the shared reusable hard-gate workflow):
@@ -77,7 +77,7 @@ See `docs/runbook.md`.
 | Package | Used for |
 |---|---|
 | `hex-service-kit` | `Principal` / `IdentityPort` / seeded personas, fail-closed bind + CORS, `make_require_service_caller` / the app-object exposure guard / security headers (the end-user dependency is this repo's own, so a deployment that can authenticate nobody answers with a status and a reason rather than a blanket 401), the hash-chained WORM audit log, `StrEnum` taxonomies |
-| `agent-eval-kit` | the `--mode smoke\|gate` scaffold, the Hrz4 gate client, the not-falsely-green harness |
+| `agent-eval-kit` | the `--mode smoke\|gate` scaffold, the `model-quality-gate` client, the not-falsely-green harness |
 | `pii-kit` | the jurisdiction PII pattern pack the fusion service redacts with |
 | `review-kit` | the rule R8 producer path: the review payload, the submission client and the outbox |
 

@@ -46,11 +46,10 @@ constants it names to fail the build if a credential ever reappears in that deci
 second consequence, `/docs`, `/redoc` and `/openapi.json` are registered only under the deliberate
 `local` exposure profile: under `gcp` those routes are ABSENT rather than guarded.
 
-## What screens prompt-injected alert text, and why is it not Hrz1?
+## What screens prompt-injected alert text, and why is it not `agent-guardrail-gateway`?
 
-This repo owns a `SafetyPort` (`ports/safety.py`) instead of routing through the Hrz1 guardrail
-gateway, and that is a recorded design decision: the G5 catalog row names Model Armor in its stack
-and omits Hrz1 from its dependencies. `FusionService._fuse` screens the joined alert detail on the
+This repo owns a `SafetyPort` (`ports/safety.py`) instead of routing through the `agent-guardrail-gateway`, and that is a recorded design decision: the G5 catalog row names Model Armor in its stack
+and omits `agent-guardrail-gateway` from its dependencies. `FusionService._fuse` screens the joined alert detail on the
 INPUT side before the generator could be reached, and on a block the generation port is **not
 called at all**: a deterministic fallback narrator records the block instead
 (`tests/unit/test_fusion_service.py::test_blocked_input_never_reaches_the_generation_port`). The
@@ -69,7 +68,7 @@ Not on any path the tests cover. Redaction happens at every boundary crossing, n
 `FusionService._fuse` redacts the joined alert text with `domain/pii.py`'s pattern set BEFORE the
 safety screen (so even a managed screening log never sees a raw identifier) and again before the
 WORM audit write; `adapters/_review_payload.py` redacts subject, summary and every citation
-snippet before the Hrz7 wire, and it does so against EVERY jurisdiction's national-ID rows plus the
+snippet before the `human-review-console` wire, and it does so against EVERY jurisdiction's national-ID rows plus the
 universal email and phone rows, because the console is a shared sink; `agent/tools.py` masks tool
 results before they return, because a tool result becomes model context (P-04) while an API
 response to the caller who supplied the text does not. Evidence:
@@ -87,7 +86,7 @@ tokens (project id, region, datastore, Model Armor template, model id, local pat
 `.env.example` documents the non-secret names; `.env.secrets.example` documents the secret NAMES
 with placeholders. Inbound and outbound credentials are deliberately distinct variables
 (`FRAUDFUSION_S2S_TOKEN` for this service as callee, `HUMAN_REVIEW_S2S_TOKEN` and `HUMAN_REVIEW_S2S_SIGNING_KEY`
-for the outbound Hrz7 calls), so one cannot be reused as the other. On the deploy side,
+for the outbound `human-review-console` calls), so one cannot be reused as the other. On the deploy side,
 `additional_secret_env` in `infra/terraform/variables.tf` mounts secrets by immutable version id
 and refuses `"latest"`, and it refuses any name reserved by `naming.tf` so a secret cannot shadow
 the residency, identity or routing wiring. Practices-audit check C10 covers this.
@@ -114,14 +113,14 @@ why once store and anchor disagree the service refuses to append rather than re-
 `tests/unit/test_audit_anchor.py` proves the detection, proves the CONTROL case goes undetected
 without an anchor, and proves the refusal. In production the managed WORM sink is the real
 guarantee: a locked Cloud Logging bucket (`infra/terraform/logging_worm.tf`, irreversible once
-`worm_locked = true`) fed by the audit sink, with Hrz5 as the enterprise store.
+`worm_locked = true`) fed by the audit sink, with `agent-observability` as the enterprise store.
 
 ## What is explicitly out of scope for this repo?
 
-The governed knowledge base (**Hrz2**), the agent registry (**Hrz3**), the AI-quality and
-model-risk promotion gate (**Hrz4**), the enterprise observability and WORM audit platform
-(**Hrz5**), and the human-review and maker-checker console (**Hrz7**). This repo integrates those
-through ports and thin adapters rather than re-implementing them. The Hrz1 guardrail gateway is
+The governed knowledge base (`enterprise-knowledge-base`), the agent registry (`agent-registry`), the AI-quality and
+model-risk promotion gate (`model-quality-gate`), the enterprise observability and WORM audit platform
+(`agent-observability`), and the human-review and maker-checker console (`human-review-console`). This repo integrates those
+through ports and thin adapters rather than re-implementing them. The `agent-guardrail-gateway` is
 deliberately not in the path for the reason above. Also out of scope: the alert sources
 themselves, any containment or response ACTION, and the enterprise IdP. See
 [features-faq.md](features-faq.md) for the full boundary map.

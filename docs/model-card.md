@@ -34,13 +34,13 @@ is a bounded, replaceable component that narrates what the engine already decide
   screening log never sees a raw identifier, and it redacts again before the WORM audit write
   (`tests/unit/test_fusion_service.py::test_pii_is_redacted_before_the_audit_write`). The outbound
   review payload is redacted against EVERY jurisdiction's rows in `adapters/_review_payload.py`,
-  because the Hrz7 console is a shared sink
+  because the `human-review-console` is a shared sink
   (`tests/unit/test_review_routing.py::test_the_payload_is_redacted_before_it_leaves_the_process`).
   The generator itself is handed a `NarrationRequest` of engine facts, retrieved passages and
   grounding hits, not the raw alert rows.
 - **Injection screening around the model.** This repo owns a `SafetyPort` (`ports/safety.py`)
-  rather than delegating to the Hrz1 guardrail gateway, because its catalog row names Model Armor
-  in the stack and omits Hrz1 from its dependencies. Input is screened before the generator could
+  rather than delegating to the `agent-guardrail-gateway`, because its catalog row names Model Armor
+  in the stack and omits `agent-guardrail-gateway` from its dependencies. Input is screened before the generator could
   ever be reached, and on a block the generator is **not called at all**: `_narrate` returns the
   deterministic `_fallback` narrator with the block recorded in the text
   (`tests/unit/test_fusion_service.py::test_blocked_input_never_reaches_the_generation_port`).
@@ -61,7 +61,7 @@ is a bounded, replaceable component that narrates what the engine already decide
   is the standing gate.
 - **R8 routing, unconditionally.** Every incident is consequential, so `IncidentAssessment` always
   carries `requires_human_review=True`, and the API, the CLI and the agent tool each route it to
-  the Hrz7 console through `ReviewRouterPort` in the same call that produced it. A `CRITICAL` band
+  the `human-review-console` through `ReviewRouterPort` in the same call that produced it. A `CRITICAL` band
   demands two approvals (`_DUAL_CONTROL` in `adapters/_review_payload.py`). Nothing auto-executes:
   `tests/unit/test_review_routing.py` covers the routing on all three surfaces, and
   `tests/unit/test_fusion_service.py::test_every_incident_requires_human_review_and_never_auto_contains`
@@ -82,7 +82,7 @@ Two neighbouring ports change what the model sees, so they belong on this card:
 | Profile | Grounding (`ports/grounding.py`) | Retrieval (`ports/retrieval.py`) |
 |---|---|---|
 | `local` | Pure fixture lookup against the synthetic intel set (`adapters/local/grounding.py`). **No model is involved**, and an unresolved indicator simply produces no hit. | Naive term-overlap ranking over a fixture runbook corpus (`adapters/local/retrieval.py`). No model, no network. |
-| `gcp` | `adapters/gcp/grounding.py` makes a SECOND generative call per indicator, on the same `generation_model`, and stores the reply text as both the verdict and the citation snippet. | `adapters/gcp/retrieval.py` queries the Hrz2 governed knowledge base through Discovery Engine search. Not a model call. |
+| `gcp` | `adapters/gcp/grounding.py` makes a SECOND generative call per indicator, on the same `generation_model`, and stores the reply text as both the verdict and the citation snippet. | `adapters/gcp/retrieval.py` queries the `enterprise-knowledge-base` governed knowledge base through Discovery Engine search. Not a model call. |
 | `onprem` | Fail-fast placeholder. | Fail-fast placeholder. |
 
 Both are advisory to narration only. An incident's score, band, techniques and recommendation are
@@ -113,12 +113,12 @@ model is used zero-shot behind a prompt built from validated facts.
   safety calls, and no switch that forces deterministic-only operation with the model disabled.
   The deterministic fallback makes that switch cheap to add, because the engine-only path is
   already the tested default.
-- **Run a managed-profile eval through the Hrz4 gate** (P-08, R5). The offline gate scores the
+- **Run a managed-profile eval through the `model-quality-gate`** (P-08, R5). The offline gate scores the
   deterministic local narrator against the golden set, so `runbook_groundedness` today measures a
-  template. Register the bundle `soc-fraud-fusion` with Hrz4 and add a `gcp`-profile
+  template. Register the bundle `soc-fraud-fusion` with `model-quality-gate` and add a `gcp`-profile
   run that scores the real draft for groundedness and technique fidelity against the same cases.
-- **Report model spend and latency to Hrz5** (R2). `adapters/gcp/tracer.py` can export OTLP to the
-  Hrz5 collector, but no token usage is recorded against the generation or grounding calls, so
+- **Report model spend and latency to `agent-observability`** (R2). `adapters/gcp/tracer.py` can export OTLP to the
+  `agent-observability` collector, but no token usage is recorded against the generation or grounding calls, so
   cost per incident is currently unmeasured.
 
 Until these are complete the system is safe to run offline, on the `local` profile, where the

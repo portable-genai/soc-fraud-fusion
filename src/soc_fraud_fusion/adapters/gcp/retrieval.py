@@ -1,4 +1,5 @@
-"""GCP RetrievalPort: governed retrieval through Hrz2 (File Search is Hrz2's backend).
+"""GCP RetrievalPort: governed retrieval through enterprise-knowledge-base (File Search is
+enterprise-knowledge-base's backend).
 
 The ``google.cloud.discoveryengine`` import lives inside :meth:`retrieve`, so the
 ``local``/``onprem`` profiles import this module with no GCP SDK installed. The data store is
@@ -12,7 +13,9 @@ from ...domain.models import RetrievalQuery, RetrievedPassage
 
 
 class Hrz2RetrievalAdapter:
-    """Query the Hrz2 governed knowledge base for runbook / threat-intel passages."""
+    """Query the enterprise-knowledge-base governed knowledge base for runbook / threat-intel
+    passages.
+    """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings

@@ -14,7 +14,7 @@ Two invariants the plan pins:
   action come from :class:`CorrelationEngine`, and the narrator receives those FACTS, never the
   raw alert text, so no raw identifier reaches the model at all;
 * every incident is consequential: ``requires_human_review`` is always True and the surfaces
-  route it to Hrz7 (rule R8). The system never executes containment.
+  route it to human-review-console (rule R8). The system never executes containment.
 """
 
 from __future__ import annotations
