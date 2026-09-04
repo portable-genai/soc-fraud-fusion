@@ -14,7 +14,7 @@ the resource id `soc-fraud-fusion` (`--resource`) and, optionally, the Terraform
 `--yes`, add `--include-docs` to sweep Markdown prose. Then recreate the venv, `make install`, and
 prove it with `make gate`. There is deliberately **no `--cli` flag** (the console script is named
 after the package, per `[project.scripts]`) and **no `--dist` flag** (`--resource` is one literal
-doing four jobs: the distribution name, the GitHub id, the A2A agent-card name and the Hrz4 eval
+doing four jobs: the distribution name, the GitHub id, the A2A agent-card name and the `model-quality-gate` eval
 bundle id, kept identical so a fork's promotion record and its discovery card cannot disagree).
 The human decisions the script does not make are the checklist in
 [`../ADOPTING.md`](../ADOPTING.md) section 6.
@@ -106,6 +106,6 @@ A production model path. The `local` profile is a real offline system, but the s
 marker-list heuristic and the narrator is a deterministic template, so `runbook_groundedness`
 today scores a template rather than a live model. The managed path needs a pinned model snapshot,
 generation parameters, budget and rate controls, a kill switch, and a `gcp`-profile eval run
-through the Hrz4 gate before it is production-cleared. Those are named honestly in
+through the `model-quality-gate` before it is production-cleared. Those are named honestly in
 [`../model-card.md`](../model-card.md) and tracked as the open P-08, P-10 and P-11 rows in
 [`../../COMPLIANCE.md`](../../COMPLIANCE.md). Plan them as adoption work, not as a surprise.

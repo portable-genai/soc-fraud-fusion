@@ -4,9 +4,9 @@
 Two named layers via ``--mode`` (the scaffold is ``agent_eval_kit.eval_main``):
 
 * **smoke** (default) - the offline pre-merge check CI runs on every change: it drives the real
-  ``FusionService`` against a golden set with SDK-free local adapters and scores several metrics.
-* **gate** - the promotion verdict from the shared Hrz4 authority (requires the ``gcp`` profile),
-  via ``agent_eval_kit.PromotionGateClient``.
+  ``FusionService`` against a golden set with SDK-free local adapters and scores several metrics. *
+  **gate** - the promotion verdict from the shared model-quality-gate authority (requires the
+  ``gcp`` profile), via ``agent_eval_kit.PromotionGateClient``.
 
 Every metric is scored against the DATASET'S OWN ``expected_*`` fields (an independent golden
 oracle, hand-computed from the fixtures), never against the pipeline's own verdict: a metric that
@@ -53,7 +53,8 @@ THRESHOLDS: dict[str, float] = {
     "review_safety": 0.99,
     "pii_safety": 0.99,
 }
-#: The registered Hrz4 metric bundle for this vertical (Hrz4 owns the metrics + thresholds).
+#: The registered model-quality-gate metric bundle for this vertical (model-quality-gate owns the
+#: metrics + thresholds).
 _BUNDLE = "soc-fraud-fusion"
 
 _TECHNIQUE_TOKEN = re.compile(r"\bT\d{4}(?:\.\d{3})?\b")
@@ -208,6 +209,6 @@ if __name__ == "__main__":
             smoke=run_smoke,
             gate=run_gate,
             default_dataset=DEFAULT_DATASET,
-            description="Offline / Hrz4 evaluation gate for G5.",
+            description="Offline / model-quality-gate for G5.",
         )
     )

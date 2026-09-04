@@ -36,7 +36,7 @@ the reverse.
 If your product is another *correlate-then-recommend* copilot (a fraud case builder, an insider
 threat triage desk, a payments-abuse fusion cell), most of the hexagon, the three profiles, the
 deterministic-score-plus-narrating-model pattern, the redact-before-audit rule, the eval gate and
-the Hrz7 review routing transfer directly. You replace the signal-to-technique rows and the
+the `human-review-console` review routing transfer directly. You replace the signal-to-technique rows and the
 artifact models, and retune the policy numbers.
 
 ## 2. Core-vs-adopter-owned files (so upstream merges stay mechanical)
@@ -87,7 +87,7 @@ Three things about the flags:
   `--package` renames it too, and a second flag could only drift out of step.
 - There is deliberately **no `--dist` flag**. `--resource` is one literal doing four jobs: the
   distribution name and the GitHub id in `pyproject.toml`, the A2A agent-card `name` in
-  `agent/agent_card.py`, and the Hrz4 eval bundle id (`_BUNDLE` in `eval/run_eval.py`). They are
+  `agent/agent_card.py`, and the `model-quality-gate` eval bundle id (`_BUNDLE` in `eval/run_eval.py`). They are
   the same string on purpose, so a fork's promotion record and its discovery card cannot disagree
   about which system they describe.
 - `--name-prefix` is optional and is rewritten only inside its own `variable "name_prefix"` block
@@ -174,31 +174,31 @@ This repo is one system in a catalog of composable GRC systems. Several concerns
 owned by sibling platform services; integrate rather than rebuild them (see
 [`faq/features-faq.md`](faq/features-faq.md) for the full map):
 
-- **Hrz2** governed knowledge base: consumed by `adapters/gcp/retrieval.py`
+- `enterprise-knowledge-base` governed knowledge base: consumed by `adapters/gcp/retrieval.py`
   (`Hrz2RetrievalAdapter`) for runbook and threat-intel passages, pinned to the residency region.
   Passages inform NARRATION only; an incident's band is identical with retrieval stubbed empty.
-- **Hrz3** agent registry: this agent publishes its A2A card at `/.well-known/agent-card.json`
+- `agent-registry`: this agent publishes its A2A card at `/.well-known/agent-card.json`
   (`agent/agent_card.py`), built from the same tool table the runtime binds. Registering it and
-  taking the agent's identity and entitlements from Hrz3 is the open R4 item in
+  taking the agent's identity and entitlements from `agent-registry` is the open R4 item in
   [`COMPLIANCE.md`](../COMPLIANCE.md).
-- **Hrz4** AI-quality and model-risk gate: owns promotion. `eval/run_eval.py --mode gate`
+- `model-quality-gate`: owns promotion. `eval/run_eval.py --mode gate`
   delegates the verdict to it through `agent_eval_kit.PromotionGateClient` under the bundle id
   `soc-fraud-fusion`, and refuses to run off the `gcp` profile. The offline
   `--mode smoke` run mirrors its thresholds.
-- **Hrz5** observability and immutable WORM audit: `adapters/gcp/tracer.py` sends spans OTLP to
-  the Hrz5 collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set and straight to Cloud Trace when it
+- `agent-observability` and immutable WORM audit: `adapters/gcp/tracer.py` sends spans OTLP to
+  the `agent-observability` collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set and straight to Cloud Trace when it
   is not. Binding the audit stream to the shared sink is the open R2 item.
-- **Hrz7** human-review and maker-checker console: EVERY incident is consequential, so every one
+- `human-review-console` human-review and maker-checker console: EVERY incident is consequential, so every one
   is routed there over the shared `review-kit` (rule R8) in the same call that produced it.
   You wire your `HUMAN_REVIEW_URL`; you do not re-implement the console.
 
-The guardrail gateway (**Hrz1**) is deliberately **not** in this path, and that is a real design
+The guardrail gateway (`agent-guardrail-gateway`) is deliberately **not** in this path, and that is a real design
 decision rather than an omission: this repo's catalog row names Model Armor in its stack and omits
-Hrz1 from its dependencies, so screening runs through this repo's own `SafetyPort`
+`agent-guardrail-gateway` from its dependencies, so screening runs through this repo's own `SafetyPort`
 (`ports/safety.py`, bound to `adapters/gcp/safety.py` under `gcp`) rather than through the shared
-gateway. If your institution standardises on Hrz1, that is an adapter swap behind the same port,
-not a rewrite. Marketing and financial-promotions screening (**Mkt6**) is not applicable: this
-service produces no customer-facing output. Recording an **Rsk3** intake validation reference is
+gateway. If your institution standardises on `agent-guardrail-gateway`, that is an adapter swap behind the same port,
+not a rewrite. Marketing and financial-promotions screening (`marketing-compliance-gate`) is not applicable: this
+service produces no customer-facing output. Recording an `architecture-validator` intake validation reference is
 an adoption action, not a code control (rule R6).
 
 Where this repo's responsibility ends: it produces a correlated, cited, banded incident and a
@@ -216,6 +216,6 @@ the alert sources, it does not own the review console, and it does not own the p
 - [ ] Replaced every fixture in `adapters/local/_fixtures.py` with your own synthetic data.
 - [ ] Rebuilt `eval/datasets/golden_cases.jsonl` and re-derived its oracle, and kept `tests/unit/test_not_falsely_green.py` honest.
 - [ ] Moved `FRAUDFUSION_AUDIT_PATH` off `:memory:` and set `FRAUDFUSION_AUDIT_ANCHOR` on a different volume.
-- [ ] Set `HUMAN_REVIEW_URL` and decided which sibling systems (Hrz2, Hrz3, Hrz4, Hrz5, Hrz7) you integrate vs stub.
+- [ ] Set `HUMAN_REVIEW_URL` and decided which sibling systems (`enterprise-knowledge-base`, `agent-registry`, `model-quality-gate`, `agent-observability`, `human-review-console`) you integrate vs stub.
 - [ ] Reviewed the deploy posture: Dockerfile, `org_policy.tf`, `kms.tf`, `logging_worm.tf` retention and lock, `vpc_sc.tf` dry-run, and the bind address.
 - [ ] Recorded your baseline upstream tag so you can take future fixes.

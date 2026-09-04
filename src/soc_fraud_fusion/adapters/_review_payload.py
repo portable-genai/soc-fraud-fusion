@@ -1,11 +1,12 @@
 """Shared conversion from an escalated result to an ``review-kit`` Review payload.
 
-Lives in the adapter layer, not the pure domain, because it depends on the kit. The subject,
-summary and every citation snippet are redacted BEFORE they leave the process (the same
+Lives in the adapter layer, not the pure domain, because it depends on the kit. The subject, summary
+and every citation snippet are redacted BEFORE they leave the process (the same
 redact-before-anything rule the audit write obeys), using the shared ``pii-kit``, so no raw
-identifier reaches Hrz7 over the wire; Hrz7 redacts again before its own audit write (defence in
-depth). ``maker`` and ``tenant`` are asserted here and trusted by Hrz7 because the caller is an
-authenticated S2S service; per-hop on-behalf-of token exchange is the deferred next layer.
+identifier reaches human-review-console over the wire; human-review-console redacts again before its
+own audit write (defence in depth). ``maker`` and ``tenant`` are asserted here and trusted by
+human-review-console because the caller is an authenticated S2S service; per-hop on-behalf-of token
+exchange is the deferred next layer.
 """
 
 from __future__ import annotations
@@ -61,7 +62,7 @@ def _kit_citations(result: IncidentAssessment) -> tuple[KitCitation, ...]:
 
 
 def result_to_review(result: IncidentAssessment, *, maker: str, tenant: str = "") -> Review:
-    """Build the review a producer submits to Hrz7 for an incident assessment."""
+    """Build the review a producer submits to human-review-console for an incident assessment."""
     return Review(
         action="soc_fraud_fusion:fuse",
         subject=_redact(result.subject),
@@ -74,6 +75,6 @@ def result_to_review(result: IncidentAssessment, *, maker: str, tenant: str = ""
         case_ref=result.incident.incident_id,
         # Producer-owned, tenant-scoped key so a retried delivery is idempotent at the console. The
         # incident signal_key makes it stable across re-runs of the same alerts.
-        source_key=f"G5:{result.incident.signal_key[:16]}",
+        source_key=f"soc-fraud-fusion:{result.incident.signal_key[:16]}",
         citations=_kit_citations(result),
     )

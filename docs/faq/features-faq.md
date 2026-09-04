@@ -47,7 +47,7 @@ a per-technique weight), which is what a SOC lead diffs when retuning.
 
 No. `MONITOR`, `INVESTIGATE` and `CONTAIN` are RECOMMENDATIONS, named as such in
 `RecommendedAction`. Every incident is treated as consequential, so `requires_human_review` is
-unconditionally true and the result is ROUTED to the **Hrz7** Human-Review and Maker-Checker
+unconditionally true and the result is ROUTED to the `human-review-console` Human-Review and Maker-Checker
 Console through the shared `review-kit` in the same call that produced it (rule R8), on the
 API, the CLI and the agent-tool paths alike. A `CRITICAL` band demands two approvals. The payload
 is redacted before the wire and the verified principal is threaded as maker. The agent proposes;
@@ -69,14 +69,14 @@ rebuild these in a fork:
 
 | Concern | Owned by (catalog id) | G5's role |
 |---|---|---|
-| Governed RAG / ACL-aware knowledge base with citations | **Hrz2** | consumes it for runbook and threat-intel passages (`adapters/gcp/retrieval.py`), advisory to narration only |
-| Agent registry, versioning, identity, entitlements | **Hrz3** | publishes its A2A card at `/.well-known/agent-card.json`; registering it is the open R4 item |
-| AI-quality / eval / model-risk promotion gate | **Hrz4** | `eval/run_eval.py --mode gate` delegates the verdict under bundle `soc-fraud-fusion`; the offline smoke run mirrors its thresholds |
-| Observability + immutable WORM audit + FinOps | **Hrz5** | exports spans OTLP to its collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set; the shared audit sink is the open R2 item |
-| Human review / maker-checker console | **Hrz7** | routes EVERY incident's escalation to it (R8); you wire `HUMAN_REVIEW_URL`, you do not build a console |
-| Runtime guardrail gateway | **Hrz1** | deliberately NOT in this path: the G5 catalog row names Model Armor in the stack and omits Hrz1, so screening runs through this repo's own `SafetyPort` (`ports/safety.py`) |
-| Architecture and requirements intake validation | **Rsk3** | an intake action, not a code control (rule R6): record the validation reference in `COMPLIANCE.md` |
-| Marketing / financial-promotions claim check | **Mkt6** | not applicable (rule R7, P-13): this service produces no customer-facing output |
+| Governed RAG / ACL-aware knowledge base with citations | `enterprise-knowledge-base` | consumes it for runbook and threat-intel passages (`adapters/gcp/retrieval.py`), advisory to narration only |
+| Agent registry, versioning, identity, entitlements | `agent-registry` | publishes its A2A card at `/.well-known/agent-card.json`; registering it is the open R4 item |
+| AI-quality / eval / model-risk promotion gate | `model-quality-gate` | `eval/run_eval.py --mode gate` delegates the verdict under bundle `soc-fraud-fusion`; the offline smoke run mirrors its thresholds |
+| Observability + immutable WORM audit + FinOps | `agent-observability` | exports spans OTLP to its collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set; the shared audit sink is the open R2 item |
+| Human review / maker-checker console | `human-review-console` | routes EVERY incident's escalation to it (R8); you wire `HUMAN_REVIEW_URL`, you do not build a console |
+| Runtime guardrail gateway | `agent-guardrail-gateway` | deliberately NOT in this path: the G5 catalog row names Model Armor in the stack and omits `agent-guardrail-gateway`, so screening runs through this repo's own `SafetyPort` (`ports/safety.py`) |
+| Architecture and requirements intake validation | `architecture-validator` | an intake action, not a code control (rule R6): record the validation reference in `COMPLIANCE.md` |
+| Marketing / financial-promotions claim check | `marketing-compliance-gate` | not applicable (rule R7, P-13): this service produces no customer-facing output |
 
 So the knowledge base, the registry, the eval platform, the audit sink and the review console are
 *dependencies*, not features of this repo.
@@ -87,7 +87,7 @@ At the reviewer's inbox. G5 does not own the alert sources (it reads them throug
 and writes nothing back), it does not own case management or the investigation workflow after the
 escalation is filed, it does not own any response or containment ACTION, it does not own the
 enterprise identity provider (auth is configured ON the deployed service), and it does not own the
-promotion decision for its own model (that is Hrz4's). If a capability you want sits past that
+promotion decision for its own model (that is `model-quality-gate`'s). If a capability you want sits past that
 line, check whether a sibling catalog system already has a home for it before building it here.
 
 ### Can I use this for a different vertical?

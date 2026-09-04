@@ -27,9 +27,9 @@ a convention, and it carries its own control case proving the scan can see a vio
   deterministic grounded narrator, a hash-chained SQLite WORM audit log from the commons, seeded
   dev personas, and a review-kit outbox that actually enqueues rather than no-opping.
 - **`gcp`**: the managed services, with every SDK import lazy and inside the method, so the other
-  two profiles import the same modules with no cloud SDK installed. BigQuery alerts, Hrz2 governed
+  two profiles import the same modules with no cloud SDK installed. BigQuery alerts, `enterprise-knowledge-base` governed
   retrieval, a grounded lookup, Model Armor screening, Gemini narration, Cloud Logging WORM, IAP
-  identity, Cloud Trace or the Hrz5 OTLP collector, and the Hrz7 service intake over S2S.
+  identity, Cloud Trace or the `agent-observability` OTLP collector, and the `human-review-console` service intake over S2S.
 - **`onprem`**: fail-fast placeholders that satisfy the same Protocols and raise
   `NotImplementedError` naming the migration target. They prove the ports are honest exit seams
   rather than decoration.
@@ -107,7 +107,7 @@ audit store is therefore a file copy, which is the point of P-12.
 
 Three things, stated rather than hidden. First, tamper-evidence is scoped to what the local sink
 can prove: hash chaining plus an external anchor catches edits, reorders, deletions and truncation,
-but production tamper-evidence is the locked WORM bucket's job (Hrz5 in the enterprise), and
+but production tamper-evidence is the locked WORM bucket's job (`agent-observability` in the enterprise), and
 `portability_demo.py` says so. Second, the managed narration and grounding paths depend on a
 Gemini model id (`generation_model`, defaulting to the floating alias `gemini-3.5-flash`); a fork
 that exits to its own hosted model gets different prose, though not different figures, because the

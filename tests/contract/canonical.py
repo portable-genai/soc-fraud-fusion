@@ -236,7 +236,8 @@ CANONICAL_CALLS: dict[str, PortCase] = {
     "retrieval": PortCase(
         invoke=_retrieval_invoke,
         answered=_retrieval_answered,
-        # The lazy `google.cloud.discoveryengine` import is the first thing the Hrz2 adapter does.
+        # The lazy `google.cloud.discoveryengine` import is the first thing the
+        # enterprise-knowledge-base adapter does.
         managed_refusal=(ImportError,),
         detail="return cited runbook / threat-intel passages",
     ),
@@ -266,7 +267,7 @@ CANONICAL_CALLS: dict[str, PortCase] = {
     "evaluation": PortCase(
         invoke=_evaluation_invoke,
         answered=_evaluation_answered,
-        # The managed gate reaches Hrz4 over HTTP, which is unreachable offline.
+        # The managed gate reaches model-quality-gate over HTTP, which is unreachable offline.
         managed_refusal=(Exception,),
         detail="score one golden dataset through the promotion authority",
     ),

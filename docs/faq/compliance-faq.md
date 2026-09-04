@@ -9,8 +9,7 @@ control map with an Evidence column naming real files), [`../../SPEC.md`](../../
 
 No. It is a **decision-support** copilot. `MONITOR`, `INVESTIGATE` and `CONTAIN` are
 RECOMMENDATIONS, and the system executes none of them. Every incident is treated as consequential,
-so `requires_human_review` is unconditionally true and the result is ROUTED to the **Hrz7**
-Human-Review and Maker-Checker Console via the shared `review-kit` (dependency rule R8) in the
+so `requires_human_review` is unconditionally true and the result is ROUTED to the `human-review-console` via the shared `review-kit` (dependency rule R8) in the
 same call that produced it, on the API, the CLI and the agent-tool surfaces alike. A `CRITICAL`
 band requires two approvals rather than one. The flag alone is not the escalation, and the
 distinction is enforced: `tests/unit/test_review_routing.py` asserts the outbound review on each
@@ -25,7 +24,7 @@ identifiers; the repo assumes it does. Redaction therefore happens at every boun
 rather than once, using the shared `pii-kit` with a jurisdiction selection and ORDER this
 deployment owns (`JURISDICTIONS = ("SG", "HK", "JP", "AU")` in `domain/pii.py`, national-ID rows
 first, universal email and phone rows last). It is applied before the safety screen, before the
-WORM audit write, before the Hrz7 payload leaves the process (there against EVERY jurisdiction's
+WORM audit write, before the `human-review-console` payload leaves the process (there against EVERY jurisdiction's
 rows, because the console is a shared sink), and before an agent tool result returns, because a
 tool result becomes model context. The generator itself is handed engine FACTS plus retrieved
 passages, not raw alert rows. Trace spans carry a fixed structural attribute set with no content
@@ -45,7 +44,7 @@ is append-only, hash-chained AND externally anchored: the chain catches an edit,
 reorder, and only the external head anchor catches a truncated tail, because a truncated chain
 still verifies. `tests/unit/test_audit_anchor.py` proves both halves plus the control case. In
 production the locked WORM Cloud Logging bucket (`infra/terraform/logging_worm.tf`, minimum 180
-day retention, irreversible once locked) is the real guarantee, with **Hrz5** as the enterprise
+day retention, irreversible once locked) is the real guarantee, with `agent-observability` as the enterprise
 sink.
 
 ### What is the model-risk story?
@@ -58,9 +57,9 @@ for a deterministic fallback, so a hallucinated number cannot reach a reviewer. 
 against the golden set's own INDEPENDENT oracle rather than against the pipeline's answer
 (`correlation_accuracy`, `technique_mapping_exactness`, `disposition_accuracy`,
 `runbook_groundedness`, `review_safety`, `pii_safety`, all at 0.99). `--mode gate` delegates the
-promotion verdict to the sibling **Hrz4** AI-quality system under the bundle
+promotion verdict to the sibling `model-quality-gate` AI-quality system under the bundle
 `soc-fraud-fusion` and refuses to run off the managed profile. Two gaps are open and
-should be read as such: the bundle is not yet registered with Hrz4 (P-08, R5), and the offline
+should be read as such: the bundle is not yet registered with `model-quality-gate` (P-08, R5), and the offline
 eval scores the deterministic narrator rather than a live model, so a managed-profile eval run is
 still owed. The model id is also a floating alias today rather than a pinned snapshot.
 
@@ -106,10 +105,10 @@ anchor, and rebuild the golden set.
 
 At the boundary of what it produces. G5 owns the correlation, the score, the band, the citations,
 the redaction before every boundary crossing and the routing of the escalation. It does NOT own
-the human-review workflow or the approval record itself (**Hrz7**), the enterprise immutable audit
-store and telemetry (**Hrz5**), the model promotion verdict (**Hrz4**), the governed corpus its
-runbook passages come from (**Hrz2**), or the agent registry entry and entitlements (**Hrz3**).
-The **Hrz1** guardrail gateway is deliberately outside the path: the G5 catalog row names Model
-Armor and omits Hrz1, so screening is this repo's own `SafetyPort`. Project intake validation is
-**Rsk3** (rule R6), an action to record rather than a control to build, and marketing screening
-(**Mkt6**, rule R7) is not applicable because this service produces no customer-facing output.
+the human-review workflow or the approval record itself (`human-review-console`), the enterprise immutable audit
+store and telemetry (`agent-observability`), the model promotion verdict (`model-quality-gate`), the governed corpus its
+runbook passages come from (`enterprise-knowledge-base`), or the agent registry entry and entitlements (`agent-registry`).
+The `agent-guardrail-gateway` is deliberately outside the path: the G5 catalog row names Model
+Armor and omits `agent-guardrail-gateway`, so screening is this repo's own `SafetyPort`. Project intake validation is
+`architecture-validator` (rule R6), an action to record rather than a control to build, and marketing screening
+(`marketing-compliance-gate`, rule R7) is not applicable because this service produces no customer-facing output.

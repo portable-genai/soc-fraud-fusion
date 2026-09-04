@@ -30,7 +30,7 @@ from .models import (
 _SCORE_CEILING = 100
 
 #: Band to recommendation. MONITOR/INVESTIGATE/CONTAIN are recommendations, never actions: every
-#: one still sets ``requires_human_review`` and routes to Hrz7.
+#: one still sets ``requires_human_review`` and routes to human-review-console.
 _ACTION_BY_SEVERITY: dict[Severity, RecommendedAction] = {
     Severity.LOW: RecommendedAction.MONITOR,
     Severity.MEDIUM: RecommendedAction.INVESTIGATE,

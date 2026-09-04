@@ -2,8 +2,8 @@
 
 Ranks the fixture passages by naive term overlap with the query and returns the top ``k``. It is
 deterministic and SDK-free, so the offline gate can assert that narration is grounded in retrieved
-prose without a live Hrz2 backend. Retrieval informs narration only: an incident's band is
-identical with this adapter returning nothing.
+prose without a live enterprise-knowledge-base backend. Retrieval informs narration only: an
+incident's band is identical with this adapter returning nothing.
 """
 
 from __future__ import annotations

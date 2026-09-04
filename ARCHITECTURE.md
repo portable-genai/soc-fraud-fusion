@@ -66,7 +66,7 @@ the model -> **deterministic correlation, ATT&CK mapping and scoring** (`Correla
 retrieve runbook prose (`RetrievalPort`) and ground indicators (`GroundingPort`), advisory to
 narration only -> narrate a cited summary and runbook (`GenerationPort`), schema-validated and
 discarded on failure for a deterministic fallback -> screen the output -> redact-before-audit
-(P-04) -> already redacted WORM audit write -> **route the incident to Hrz7 (R8)**. Every incident
+(P-04) -> already redacted WORM audit write -> **route the incident to `human-review-console` (R8)**. Every incident
 is consequential, so it always routes; the system never executes containment. The audit actor and
 the review maker are both the verified `Principal`, never the request body.
 
@@ -74,13 +74,13 @@ the review maker are both the verified `Principal`, never the request body.
 | Port | local | gcp | onprem |
 |---|---|---|---|
 | `AlertFeedPort` | deterministic fixture alerts | BigQuery alert table (lazy) | placeholder |
-| `RetrievalPort` | fixture runbook / intel corpus | Hrz2 File Search (lazy) | placeholder |
+| `RetrievalPort` | fixture runbook / intel corpus | `enterprise-knowledge-base` File Search (lazy) | placeholder |
 | `GroundingPort` | fixture IOC / CVE set | grounded lookup (lazy) | placeholder |
 | `SafetyPort` | deterministic injection heuristic | Model Armor (lazy) | placeholder |
 | `GenerationPort` | deterministic grounded narrator | Gemini on Vertex (lazy) | placeholder |
 | `AuditSinkPort` | hash-chained SQLite WORM (commons) | Cloud Logging WORM (lazy) | placeholder |
 | `IdentityPort` | seeded personas (commons) | IAP assertion (lazy) | placeholder |
-| `ReviewRouterPort` | review-kit outbox (offline, inspectable) | Hrz7 service intake over S2S | placeholder |
+| `ReviewRouterPort` | review-kit outbox (offline, inspectable) | `human-review-console` service intake over S2S | placeholder |
 
 The on-prem placeholders RAISE. A review router that silently returned would convert every
 consequential result into an unreviewed one, which is worse than a missing feature.

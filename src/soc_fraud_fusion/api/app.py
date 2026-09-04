@@ -281,7 +281,8 @@ def fuse(
     """Fuse a scope of alerts into one incident; the actor is the verified principal.
 
     Rule R8: every incident is consequential, so ``requires_human_review`` is always set and the
-    result is ROUTED to the Hrz7 console here, in the same request that produced it. The system
+    result is ROUTED to the human-review-console here, in the same request that produced it. The
+    system
     never executes containment; the maker is the verified principal, so the console records who
     originated the assessment.
     """
