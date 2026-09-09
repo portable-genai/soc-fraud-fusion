@@ -46,10 +46,16 @@ def test_an_alert_scope_of_another_tenant_is_not_fusible(api_client: TestClient)
     received another bank's whole alert set, correlated into an incident with its detail lines
     quoted back.
 
-    A foreign scope now answers exactly as an UNKNOWN scope does, with an empty low incident,
-    rather than with a refusal. "No alerts in this scope" was already this port's valid answer,
-    so reusing it means the response cannot be read as "that scope exists, but not for you",
-    which is what a distinct refusal would say.
+    **This assertion used to be `alert_ids == []`, and it proved less than it read.** The book
+    held one tenant, so `other-bank` owned no rows anywhere and an empty answer was the only
+    possible one: switching the filter off entirely would not have moved it. The book now ships
+    `A-9001` for `other-bank` INSIDE this very scope, which is what a scope being a label rather
+    than an entitlement actually looks like, so the assertion is the one that matters: the
+    foreign principal sees its own row and none of this tenant's.
+
+    A foreign scope still answers as an UNKNOWN scope does, with a low incident rather than a
+    refusal. "No alerts in this scope" was already this port's valid answer, so reusing it means
+    the response cannot be read as "that scope exists, but not for you".
     """
     unknown = api_client.post(
         "/v1/fuse",
@@ -61,13 +67,21 @@ def test_an_alert_scope_of_another_tenant_is_not_fusible(api_client: TestClient)
         json=_fuse_body(),
         headers={"X-Dev-Persona": "other-tenant"},
     )
+    home = api_client.post("/v1/fuse", json=_fuse_body(), headers={"X-Dev-Persona": "analyst"})
     assert unknown.status_code == 200 and foreign.status_code == 200
-    assert foreign.json()["incident"]["alert_ids"] == [], (
-        f"a foreign tenant fused the scope: {foreign.json()['summary']}"
+    assert home.status_code == 200
+
+    foreign_ids = set(foreign.json()["incident"]["alert_ids"])
+    home_ids = set(home.json()["incident"]["alert_ids"])
+    assert home_ids, "the control is empty, so the assertion below is satisfied by nothing"
+    assert not foreign_ids & home_ids, (
+        f"a foreign tenant fused this tenant's alerts: {sorted(foreign_ids & home_ids)}"
     )
-    assert foreign.json()["severity"] == unknown.json()["severity"], (
-        "a foreign scope must be indistinguishable from an unknown one"
+    assert foreign_ids == {"A-9001"}, (
+        "the foreign principal must see its OWN row: an empty answer here would also be "
+        "produced by fusion being switched off, which is what this test used to assert"
     )
+    assert unknown.json()["incident"]["alert_ids"] == []
 
 
 def test_the_home_tenant_still_fuses_its_own_scope(api_client: TestClient) -> None:

@@ -424,6 +424,11 @@ class Settings:
     profile: str = LOCAL_PROFILE
     region: str = _REGION
     audit_path: str = ":memory:"
+    #: Where the offline profiles keep the DuckDB copy of the shipped alert book. ``:memory:``
+    #: is the ephemeral, deterministic default the gate runs on; a durable path keeps what a
+    #: demo produced between runs, and the store leaves a populated file alone rather than
+    #: re-seeding over it.
+    book_path: str = ":memory:"
     #: External head anchor for the WORM audit chain (practices check C9). Keep it on a
     #: DIFFERENT volume, under different credentials, from ``audit_path``: the hash chain alone
     #: cannot detect a truncated tail, because dropping the newest rows leaves a shorter chain
@@ -540,6 +545,7 @@ class Settings:
             profile_explicit=choice.explicit,
             region=str(data.get("region") or _REGION),
             audit_path=str(data.get("audit_path") or ":memory:"),
+            book_path=str(data.get("book_path") or ":memory:"),
             audit_anchor_path=str(data.get("audit_anchor_path") or ""),
             review_url=str(data.get("review_url") or ""),
             iap_audience=str(data.get("iap_audience") or ""),
