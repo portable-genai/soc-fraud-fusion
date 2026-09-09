@@ -38,6 +38,11 @@ locals {
     "roles/cloudtrace.agent",             # tracer.py
     "roles/secretmanager.secretAccessor", # the inbound and outbound service credentials
     "roles/aiplatform.user",              # the narration surface a vertical binds
+    # READ only, deliberately. This service correlates alerts and never raises one: the table
+    # is filled by the SIEM, the identity provider and the EDR. dataEditor here would be
+    # authority nothing uses, on a table naming customers, devices and addresses.
+    "roles/bigquery.dataViewer", # alerts.py (bigquery.tf)
+    "roles/bigquery.jobUser",    # running the query is a separate grant
   ]
 }
 

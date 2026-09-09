@@ -73,7 +73,7 @@ the review maker are both the verified `Principal`, never the request body.
 ## The port table
 | Port | local | gcp | onprem |
 |---|---|---|---|
-| `AlertFeedPort` | deterministic fixture alerts | BigQuery alert table (lazy) | placeholder |
+| `AlertFeedPort` | the shipped alert book in DuckDB, over the warehouse's own schema and statement | BigQuery alert table (lazy), filtered by scope AND tenant | placeholder |
 | `RetrievalPort` | fixture runbook / intel corpus | `enterprise-knowledge-base` File Search (lazy) | placeholder |
 | `GroundingPort` | fixture IOC / CVE set | grounded lookup (lazy) | placeholder |
 | `SafetyPort` | deterministic injection heuristic | Model Armor (lazy) | placeholder |
