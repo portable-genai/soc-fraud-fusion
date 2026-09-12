@@ -161,7 +161,7 @@ reviewable. The script deliberately does NOT touch the human decisions below.
 6. **Deployment posture.** Review the Dockerfile (multi-stage, digest-pinned base, non-root uid
    10001, `HEALTHCHECK` on `/healthz`) and the whole of `infra/terraform/` before you expose
    anything: `org_policy.tf` (resource-location pin, no exportable service-account keys, uniform
-   bucket-level access), `kms.tf` (a regional CMEK key ring), `logging_worm.tf` (the locked WORM
+   bucket-level access), `kms.tf` (a regional CMEK key ring), `bigquery.tf` (the alert dataset, with that key named on every table as well as on the dataset: BigQuery stamps the dataset default onto each table it creates, so a table declaring no `encryption_configuration` reads as a key REMOVAL at the next plan, and removing one REPLACES the table and destroys its rows), `logging_worm.tf` (the locked WORM
    audit bucket, irreversible once `worm_locked = true`), `vpc_sc.tf` (dry-run first, then
    enforce), `monitoring.tf` and the opt-in `production_edge.tf`. Also decide the audit posture:
    `FRAUDFUSION_AUDIT_PATH` must leave `:memory:` for anything durable, and the moment it does,
