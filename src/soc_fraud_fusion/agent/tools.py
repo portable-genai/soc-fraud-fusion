@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from hex_service_kit.serialization import to_jsonable
 from pii_kit import redact
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import Container, Settings, build_container
 from ..domain.models import FusionRequest
 from ..domain.pii import PII_PATTERNS
@@ -78,7 +79,9 @@ def triage_incident(
 
     Returns:
       A JSON-safe result dict with every string masked for personal data (P-04), plus
-      ``review_ref``: where the escalation WENT.
+      ``review_ref``: where the escalation WENT (empty unless it was routed), and
+      ``review_routing``: ``routed``, ``failed`` (NOT queued for review), ``off`` or
+      ``not_required``.
     """
     container = _container(settings)
     service = build_fusion_service(container)
@@ -87,12 +90,14 @@ def triage_incident(
         actor=actor,
         tenant=tenant or container.settings.tenant,
     )
-    review_ref = container.review_router.route(result, maker=actor, tenant=tenant)
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=actor, tenant=tenant)
     payload = _redacted(to_jsonable(result))
     if not isinstance(payload, dict):  # pragma: no cover - dataclasses serialise to objects
         raise TypeError("an incident assessment must serialise to a JSON object")
     # Attached after the redaction pass: it is a routing reference, not narrative text.
     payload["review_ref"] = review_ref
+    payload["review_routing"] = routing.outcome.value
     return payload
 
 

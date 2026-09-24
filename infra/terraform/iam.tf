@@ -33,7 +33,7 @@ locals {
   # Every role below is traceable to a bound adapter or to the serving edge. aiplatform.user
   # covers a narration or classification model, which restates and classifies and never
   # produces a number or a verdict (the consequential decision is deterministic).
-  app_roles = [
+  app_roles = concat([
     "roles/logging.logWriter",            # audit.py (write only: it cannot read the WORM trail)
     "roles/cloudtrace.agent",             # tracer.py
     "roles/secretmanager.secretAccessor", # the inbound and outbound service credentials
@@ -43,7 +43,9 @@ locals {
     # authority nothing uses, on a table naming customers, devices and addresses.
     "roles/bigquery.dataViewer", # alerts.py (bigquery.tf)
     "roles/bigquery.jobUser",    # running the query is a separate grant
-  ]
+    # safety.py screens alert text and drafted narration through Model Armor while the
+    # guardrail is on; switched off, nothing calls it and nothing is granted.
+  ], var.guardrail_enabled ? ["roles/modelarmor.user"] : [])
 }
 
 resource "google_project_iam_member" "app" {

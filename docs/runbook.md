@@ -140,10 +140,27 @@ see `config.ProfileChoice`.
 Set `HUMAN_REVIEW_URL` to the `human-review-console` (HTTPS is required off loopback) and provide
 `HUMAN_REVIEW_S2S_TOKEN`; `HUMAN_REVIEW_S2S_SIGNING_KEY` optionally signs the propagated actor. These are the
 OUTBOUND credentials and are deliberately distinct from this service's own inbound
-`FRAUDFUSION_S2S_TOKEN`. With the URL unset, the managed router REFUSES rather
-than swallowing the escalation, so a misconfiguration is a loud failure and never a silent
-auto-execution. Under the local profile the escalation goes to the review-kit outbox, which is
-inspectable and flushes to the console when one becomes reachable.
+`FRAUDFUSION_S2S_TOKEN`. With routing on and the URL unset, the managed profile REFUSES TO BOOT,
+so a misconfiguration is a loud failure at startup rather than at the first escalation.
+Under the local profile the escalation goes to the review-kit outbox, which is inspectable and
+flushes to the console when one becomes reachable.
+
+`FRAUDFUSION_REVIEW_ROUTING` switches routing, read in three states: unset is on, `true`/`false`
+(or `on`/`off`) wins, and an emptied or unrecognised value refuses at boot. Off needs no console,
+logs one warning at startup, and every incident reports `review_routing: "off"` with an empty
+`review_ref`. A hand-off that fails at request time does not fail the incident: the response
+carries `review_routing: "failed"` and an empty reference, the failure is logged, and the
+console says the item is not queued for review. Terraform states the switch as
+`review_routing_enabled`.
+
+## Guardrail (the safety port)
+`FRAUDFUSION_GUARDRAIL` switches the input and output screen on the `safety` port (Model Armor
+under `gcp`, the marker heuristic locally), read in three states: unset is on, `true`/`false` (or
+`on`/`off`) wins, and an emptied or unrecognised value refuses at boot. On under `gcp`, the
+service refuses to boot unless `FRAUDFUSION_MODEL_ARMOR_TEMPLATE` and `FRAUDFUSION_PROJECT_ID`
+name the template and project it screens through; Terraform states them as `guardrail_enabled`,
+`model_armor_template` and `project_id`, and grants `roles/modelarmor.user` only while the
+guardrail is on. Off binds an allow-all adapter and logs one warning at startup.
 
 ## Supply chain
 Installs come from the committed lockfiles. After changing a dependency run `make lock` and commit

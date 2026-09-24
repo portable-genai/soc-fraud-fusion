@@ -1,0 +1,91 @@
+"""The runtime-control seam: what a switched-off control binds, and what a caller reports.
+
+**Disabled adapters.** When a deployment switches a control off, the container binds the class
+here instead of the profile's: :class:`DisabledGuardrail` for the ``safety`` port
+(``FRAUDFUSION_GUARDRAIL=off``) allows every text with the reason ``"guardrail off"``, and
+:class:`DisabledReviewRouter` (``FRAUDFUSION_REVIEW_ROUTING=off``) submits nothing. Each
+satisfies its port, so no service needs a ``None`` branch, and the container logs the posture at
+startup.
+
+**Recording wrapper.** Every caller that hands an incident to the router (the API route, the
+agent tool, the CLI) wraps the bound router in :class:`RecordingReviewRouter` for that one call,
+so what it returns can say what happened: ``routed``, ``failed``, ``off`` or ``not_required``. A
+failure is logged and absorbed here rather than failing an already-correlated, already-audited
+incident, but it is never invisible: the caller reports ``failed`` and an empty reference,
+which nobody can mistake for a reviewed result.
+"""
+
+from __future__ import annotations
+
+import logging
+from enum import StrEnum
+
+from ..config import Settings
+from ..domain.models import Direction, IncidentAssessment, SafetyVerdict
+
+_log = logging.getLogger(__name__)
+
+
+class ReviewRouting(StrEnum):
+    """What happened to the human-review hand-off for one result."""
+
+    ROUTED = "routed"
+    FAILED = "failed"
+    OFF = "off"
+    NOT_REQUIRED = "not_required"
+
+
+class DisabledGuardrail:
+    """SafetyPort with the guardrail switched off: allows everything, text unchanged."""
+
+    enabled = False
+
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
+
+    def screen(self, text: str, direction: Direction) -> SafetyVerdict:
+        return SafetyVerdict(allowed=True, direction=direction, reason="guardrail off")
+
+
+class DisabledReviewRouter:
+    """ReviewRouterPort with routing switched off: nothing is submitted anywhere."""
+
+    enabled = False
+
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
+
+    def route(self, result: IncidentAssessment, *, maker: str, tenant: str = "") -> str:
+        return ""
+
+
+class RecordingReviewRouter:
+    """Wraps the bound review router for one caller and records each hand-off's outcome."""
+
+    def __init__(self, inner: object) -> None:
+        self._inner = inner
+        self._outcomes: list[ReviewRouting] = []
+
+    def route(self, result: IncidentAssessment, *, maker: str, tenant: str = "") -> str:
+        """Hand ``result`` off if it requires review; return the reference, empty if none."""
+        if not result.requires_human_review:
+            return ""
+        if not getattr(self._inner, "enabled", True):
+            self._outcomes.append(ReviewRouting.OFF)
+            return ""
+        try:
+            reference = self._inner.route(result, maker=maker, tenant=tenant)  # type: ignore[attr-defined]
+        except Exception as exc:  # noqa: BLE001 - the outcome is reported, never raised
+            _log.warning("human-review hand-off failed: %s", type(exc).__name__)
+            self._outcomes.append(ReviewRouting.FAILED)
+            return ""
+        self._outcomes.append(ReviewRouting.ROUTED)
+        return str(reference)
+
+    @property
+    def outcome(self) -> ReviewRouting:
+        """One value for the caller: any failure wins, then off, then routed."""
+        for worst in (ReviewRouting.FAILED, ReviewRouting.OFF, ReviewRouting.ROUTED):
+            if worst in self._outcomes:
+                return worst
+        return ReviewRouting.NOT_REQUIRED

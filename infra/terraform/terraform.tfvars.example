@@ -77,6 +77,12 @@ production_edge_enabled = false
 # Rule R8: the human-review-console an escalation is routed to. Required when the edge is
 # enabled, because the managed router refuses rather than swallowing an escalation.
 # human_review_url = "https://review.fictional-bank.example"
+# Cheap runtime control, on in the reference; false runs without routing and needs no console.
+review_routing_enabled = true
+# The Model Armor guardrail on the safety port. On in the reference; on requires the template id
+# it screens through (the service refuses to boot without one). false runs unscreened and says so.
+guardrail_enabled = true
+# model_armor_template = "fraudfusion-guardrail"
 
 # Rule R5 and rule R2: the model-quality-gate promotion authority and the agent-observability collector. Leave a
 # variable out entirely rather than setting it to an empty string; empty is read as a
