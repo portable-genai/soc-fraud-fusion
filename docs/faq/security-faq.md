@@ -56,7 +56,11 @@ called at all**: a deterministic fallback narrator records the block instead
 drafted narrative is screened on the OUTPUT side and a blocked draft is likewise replaced. Under
 `gcp` this is Model Armor's regional REST endpoint (`:sanitizeUserPrompt` and
 `:sanitizeModelResponse`, so screening stays in-region); the adapter imports `google.auth` FIRST so
-an offline profile raises rather than silently passing text through unscreened. Under `local` the
+an offline profile raises rather than silently passing text through unscreened, and the service
+refuses to boot under `gcp` with the guardrail on and no Model Armor template or project named,
+rather than building a malformed URL at the first screen. `FRAUDFUSION_GUARDRAIL=off` switches
+the screen off out loud: the container binds an allow-all adapter whose reason is
+"guardrail off" and logs the posture at startup. Under `local` the
 screen is a deterministic marker heuristic, which exists to prove the block path in the offline
 gate and is not a real screen. Two honest limits are listed in
 [`../model-card.md`](../model-card.md): retrieved passages and grounding verdicts reach the prompt

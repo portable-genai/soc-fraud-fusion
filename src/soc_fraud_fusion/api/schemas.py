@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 from ..domain.models import IncidentAssessment
@@ -49,10 +51,11 @@ class FuseResponse(BaseModel):
     summary: str
     requires_human_review: bool
     #: Where the escalation WENT (rule R8): the human-review-console review id, or the local queue
-    #: reference.
-    #: Never empty, because every incident escalates. A caller can tell a routed escalation from a
-    #: flag that stopped here, which is the whole point of the rule.
+    #: reference. Empty exactly when ``review_routing`` is not ``routed``.
     review_ref: str = ""
+    #: What happened to the hand-off: routed, failed, off or not_required. ``failed`` means the
+    #: incident is NOT queued for review, and the console says so.
+    review_routing: Literal["routed", "failed", "off", "not_required"] = "not_required"
     grounded: bool = False
     incident: IncidentModel
     narrative: str
@@ -60,7 +63,13 @@ class FuseResponse(BaseModel):
     citations: list[CitationModel] = []
 
     @classmethod
-    def from_domain(cls, result: IncidentAssessment, *, review_ref: str = "") -> FuseResponse:
+    def from_domain(
+        cls,
+        result: IncidentAssessment,
+        *,
+        review_ref: str = "",
+        review_routing: str = "not_required",
+    ) -> FuseResponse:
         incident = result.incident
         return cls(
             subject=result.subject,
@@ -69,6 +78,7 @@ class FuseResponse(BaseModel):
             summary=result.summary,
             requires_human_review=result.requires_human_review,
             review_ref=review_ref,
+            review_routing=review_routing,  # type: ignore[arg-type]
             grounded=result.grounded,
             incident=IncidentModel(
                 incident_id=incident.incident_id,

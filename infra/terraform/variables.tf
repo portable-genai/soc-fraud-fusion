@@ -267,9 +267,32 @@ variable "human_review_url" {
   }
 
   validation {
-    condition     = !var.production_edge_enabled || can(regex("^https://", var.human_review_url))
-    error_message = "production_edge_enabled requires human_review_url (rule R8): the managed review router refuses to run with no console configured."
+    condition     = !var.production_edge_enabled || !var.review_routing_enabled || can(regex("^https://", var.human_review_url))
+    error_message = "production_edge_enabled with review_routing_enabled requires human_review_url (rule R8): the service refuses to boot with routing on and no console named. Name one, or set review_routing_enabled = false."
   }
+}
+
+variable "guardrail_enabled" {
+  description = "Switch the Model Armor guardrail on the safety port (the service's _GUARDRAIL variable). A cheap runtime control: on in the reference, reversible, so it takes a default."
+  type        = bool
+  default     = true
+}
+
+variable "model_armor_template" {
+  description = "The Model Armor template id (in this project and region) the guardrail screens through. Required when the edge is enabled with the guardrail on: the service refuses to boot without one rather than building a malformed URL at the first screen."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = !var.production_edge_enabled || !var.guardrail_enabled || can(regex("^[a-z0-9][a-z0-9_-]*$", var.model_armor_template))
+    error_message = "production_edge_enabled with guardrail_enabled requires model_armor_template: the service refuses to boot with the guardrail on and no template named. Name one, or set guardrail_enabled = false."
+  }
+}
+
+variable "review_routing_enabled" {
+  description = "Switch review routing to the human-review-console (the service's _REVIEW_ROUTING variable). A cheap runtime control: on in the reference, reversible, so it takes a default."
+  type        = bool
+  default     = true
 }
 
 variable "quality_service_url" {

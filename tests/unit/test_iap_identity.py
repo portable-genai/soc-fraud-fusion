@@ -56,6 +56,20 @@ from soc_fraud_fusion.ports.identity import (
 
 from tests.conftest import is_blocked_sdk
 
+
+@pytest.fixture(autouse=True)
+def _managed_deployment_names_its_console(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A managed process with its controls on refuses to boot unconfigured.
+
+    These tests build the app under the managed profile to exercise identity, not routing or
+    screening, so they name a console and a Model Armor template the way any managed
+    deployment must.
+    """
+    monkeypatch.setenv("HUMAN_REVIEW_URL", "https://review.example.test")
+    monkeypatch.setenv("FRAUDFUSION_MODEL_ARMOR_TEMPLATE", "fraudfusion-guardrail")
+    monkeypatch.setenv("FRAUDFUSION_PROJECT_ID", "fictional-agent-project")
+
+
 #: A configured audience: the IAP-protected resource, obviously fictional.
 AUDIENCE = "/projects/000000000000/global/backendServices/1111111111111111111"
 
@@ -409,6 +423,10 @@ def _data_port_block(name: str, local_target: str, onprem_target: str) -> list[s
 _REBOUND_SETTINGS = "\n".join(
     [
         'audit_path: ":memory:"',
+        # The managed profile names its review console or refuses to boot, as a deployment must.
+        "review_url: ${HUMAN_REVIEW_URL:-}",
+        "project_id: ${FRAUDFUSION_PROJECT_ID:-}",
+        "model_armor_template: ${FRAUDFUSION_MODEL_ARMOR_TEMPLATE:-}",
         "iap_audience: " + "${" + _AUDIENCE_ENV + ":-}",
         "adapters:",
         *[line for spec in _DATA_PORTS for line in _data_port_block(*spec)],

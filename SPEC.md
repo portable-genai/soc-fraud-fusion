@@ -29,11 +29,16 @@ Locked decisions, pinned stack, contracts. This document is the deepest authorit
   (`rulepacks/attack_map.yaml`); `RetrievalPort` (runbook / threat-intel, `enterprise-knowledge-base`) and `GroundingPort`
   (IOC / CVE) inform NARRATION only, never the score; `SafetyPort` (Model Armor) screens input
   before it reaches `GenerationPort`, so injected alert text never reaches the model.
+  `FRAUDFUSION_GUARDRAIL` switches the screen (default on); on under `gcp`, the service refuses to
+  boot without `FRAUDFUSION_MODEL_ARMOR_TEMPLATE` and `FRAUDFUSION_PROJECT_ID`.
 - **Maker-checker (P-06) and routing (R8)**: EVERY incident is consequential, so it sets
   `requires_human_review=True` AND is routed through `ReviewRouterPort` to the `human-review-console` in the
   same request; the system never executes containment. The flag alone is not the escalation. The
-  response carries `review_ref`, so a caller can tell a routed escalation from one that stopped
-  here. The managed adapter refuses to run with no console configured rather than swallowing it.
+  response carries `review_ref` and `review_routing` (`routed`, `failed`, `off` or
+  `not_required`), so a caller can tell a routed escalation from one that stopped here. Under the
+  managed profile, routing on with no console configured refuses at boot; a hand-off that fails
+  at request time is reported as `failed` and logged rather than failing the incident.
+  `FRAUDFUSION_REVIEW_ROUTING` switches routing (default on).
 - **Profile**: resolved ONCE, at import, into a `ProfileChoice` and never a bare string. Three
   states of `FRAUDFUSION_PROFILE`: UNSET is NO CHOICE (the SDK-free adapters
   still bind, but the seeded personas are refused, no service-to-service scheme is selected, every

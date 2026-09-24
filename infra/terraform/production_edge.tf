@@ -109,10 +109,35 @@ resource "google_cloud_run_v2_service" "api" {
         value = local.region
       }
       # Rule R8: the console an escalation is routed to. Required whenever the edge is enabled
-      # (variables.tf), because the managed router refuses rather than swallowing one.
+      # with routing on (variables.tf), because the service refuses to boot without one.
       env {
         name  = "HUMAN_REVIEW_URL"
         value = var.human_review_url
+      }
+      # The review-routing switch, stated rather than inherited: a cheap runtime control, on in
+      # the reference. Off is a deployment choice the service logs at startup.
+      env {
+        name  = "${local.render_env_prefix}_REVIEW_ROUTING"
+        value = tostring(var.review_routing_enabled)
+      }
+      # The guardrail switch, stated the same way. On, the service refuses to boot unless it
+      # also knows the Model Armor template and the project it screens through, so both are
+      # set here: the project always, the template only when it carries a value (an emptied
+      # variable refuses at boot, a louder posture than leaving it off).
+      env {
+        name  = "${local.render_env_prefix}_GUARDRAIL"
+        value = tostring(var.guardrail_enabled)
+      }
+      env {
+        name  = "${local.render_env_prefix}_PROJECT_ID"
+        value = var.project_id
+      }
+      dynamic "env" {
+        for_each = var.model_armor_template == "" ? [] : [var.model_armor_template]
+        content {
+          name  = "${local.render_env_prefix}_MODEL_ARMOR_TEMPLATE"
+          value = env.value
+        }
       }
 
       # The three variables below are set only when they carry a value. This service reads its
