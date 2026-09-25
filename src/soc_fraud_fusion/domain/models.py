@@ -229,6 +229,10 @@ class NarrationRequest:
     incident: Incident
     passages: tuple[RetrievedPassage, ...] = ()
     grounding: tuple[GroundingHit, ...] = ()
+    #: Sampling for this call. ``None`` sends no temperature at all (some models reject the
+    #: parameter, so free means absent, never ``1.0``). Narration is drafting, so it is free;
+    #: pin ``0.0`` only where an output is extracted, classified or compared.
+    temperature: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

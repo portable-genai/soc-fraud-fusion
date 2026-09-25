@@ -83,7 +83,7 @@ Two neighbouring ports change what the model sees, so they belong on this card:
 | Profile | Grounding (`ports/grounding.py`) | Retrieval (`ports/retrieval.py`) |
 |---|---|---|
 | `local` | Pure fixture lookup against the synthetic intel set (`adapters/local/grounding.py`). **No model is involved**, and an unresolved indicator simply produces no hit. | Naive term-overlap ranking over a fixture runbook corpus (`adapters/local/retrieval.py`). No model, no network. |
-| `gcp` | `adapters/gcp/grounding.py` makes a SECOND generative call per indicator, on the same `generation_model`, and stores the reply text as both the verdict and the citation snippet. | `adapters/gcp/retrieval.py` queries the `enterprise-knowledge-base` governed knowledge base through Discovery Engine search. Not a model call. |
+| `gcp` | `adapters/gcp/grounding.py` makes a SECOND generative call per indicator, on the same `generation_model` pinned at temperature 0.0, and stores the reply text as both the verdict and the citation snippet. | `adapters/gcp/retrieval.py` queries the `enterprise-knowledge-base` governed knowledge base through Discovery Engine search. Not a model call. |
 | `live` | The `local` fixture lookup, unchanged. A local model has no threat-intel feed, so asking it for an indicator verdict would be an invented citation. | The `local` ranking, unchanged. |
 | `onprem` | Fail-fast placeholder. | Fail-fast placeholder. |
 
@@ -101,8 +101,9 @@ model is used zero-shot behind a prompt built from validated facts.
   `model="gemini-3.5-flash"` in the `PromotionGateClient` call while the runtime reads the
   setting, so today the promotion record and the deployed model can drift apart; make them read
   one source.
-- **Pin the generation parameters and the response shape.** No temperature, top-p, seed, token cap
-  or `response_schema` is set on the managed call, and the draft is split from the reply by a
+- **Pin the response shape.** Sampling is decided per call (CONTRIBUTING row 5c): narration is
+  drafting and sends no temperature, and the grounding verdict lookup is pinned at 0.0. No top-p,
+  seed, token cap or `response_schema` is set on the managed narration call, and the draft is split from the reply by a
   string `partition("RUNBOOK:")`. A structured response schema would turn a parse failure into a
   typed rejection rather than an empty runbook that still passes `_valid()`.
 - **Screen the retrieved passages and the grounded verdicts, and screen the whole draft**

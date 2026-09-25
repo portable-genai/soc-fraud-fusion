@@ -8,6 +8,8 @@ schema and discards it on failure, so a hallucinated figure never survives.
 
 from __future__ import annotations
 
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...domain.models import NarrationDraft, NarrationRequest
 
@@ -18,15 +20,22 @@ class GeminiGeneration:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
-    def narrate(self, request: NarrationRequest) -> NarrationDraft:  # pragma: no cover - live GCP
+    def narrate(self, request: NarrationRequest) -> NarrationDraft:
         from google import genai  # noqa: PLC0415 - lazy
+        from google.genai import types  # noqa: PLC0415 - lazy
 
         client = genai.Client(vertexai=True, location=self._settings.region)
         prompt = self._prompt(request)
-        response = client.models.generate_content(
-            model=self._settings.generation_model,
-            contents=prompt,
+        model = self._settings.generation_model
+        # Free sampling is an ABSENT temperature, not 1.0: the request pins it only where an
+        # output is compared, and narration is not.
+        config = (
+            types.GenerateContentConfig(temperature=request.temperature)
+            if request.temperature is not None
+            else None
         )
+        response = client.models.generate_content(model=model, contents=prompt, config=config)
+        provenance.note_model(model)
         text = str(getattr(response, "text", "")).strip()
         narrative, _, runbook_block = text.partition("RUNBOOK:")
         runbook = tuple(

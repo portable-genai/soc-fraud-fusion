@@ -10,8 +10,9 @@ those facts and discards it on failure, so a hallucinated figure never survives 
 The port request carries no response schema, so this adapter states the draft's shape itself
 and asks for JSON: a local server enforces no schema, and the kit validates the answer, feeds a
 problem back and retries, instead of this adapter guessing where a free-text runbook starts.
-The request carries no temperature either, so none is sent and the server samples as it does,
-which is what the Gemini adapter does too.
+The request's temperature is passed through: narration leaves it ``None``, so none is sent and
+the server samples as it does, which is what the Gemini adapter does too. The kit client notes
+the model that answered for the console's model pill itself.
 """
 
 from __future__ import annotations
@@ -68,7 +69,9 @@ class LocalModelGeneration:
             {"role": "user", "content": self._facts(request)},
         ]
         try:
-            completion = self._client.complete_json(messages, schema=DRAFT_SCHEMA)
+            completion = self._client.complete_json(
+                messages, schema=DRAFT_SCHEMA, temperature=request.temperature
+            )
         except LocalModelUnavailable as exc:
             raise GenerationUnavailableError(str(exc), http_status=503) from exc
         except LocalModelOutputError as exc:

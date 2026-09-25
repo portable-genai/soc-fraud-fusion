@@ -9,8 +9,14 @@ waits on generation.
 
 from __future__ import annotations
 
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...domain.models import NarrationDraft, NarrationRequest
+
+#: What this narrator answers as, for the console's model pill: the name ``generator_model``
+#: reports under ``local``, so the pill before and after an answer agree.
+STUB_MODEL = "deterministic-offline-stub"
 
 
 class LocalGeneration:
@@ -20,6 +26,7 @@ class LocalGeneration:
         self._settings = settings
 
     def narrate(self, request: NarrationRequest) -> NarrationDraft:
+        provenance.note_model(STUB_MODEL)
         incident = request.incident
         techniques = (
             ", ".join(f"{hit.technique_id} ({hit.name})" for hit in incident.techniques)
