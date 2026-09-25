@@ -13,8 +13,11 @@ so `requires_human_review` is unconditionally true and the result is ROUTED to t
 same call that produced it, on the API, the CLI and the agent-tool surfaces alike. A `CRITICAL`
 band requires two approvals rather than one. The flag alone is not the escalation, and the
 distinction is enforced: `tests/unit/test_review_routing.py` asserts the outbound review on each
-surface, proves the managed router REFUSES rather than swallowing an escalation when no console is
-configured, and proves the on-premises placeholder refuses rather than dropping one. The API
+surface, proves the managed router adapter refuses an escalation it has no console to send to, and
+proves the on-premises placeholder refuses rather than dropping one. Under the managed profile the
+service refuses to boot with routing on and no console configured, a hand-off that fails at request
+time is reported as `review_routing: "failed"` and logged rather than swallowed, and
+`FRAUDFUSION_REVIEW_ROUTING=off` switches routing off, which every result then reports as `off`. The API
 response carries a `review_ref` so a caller can tell a routed escalation from one that stopped.
 
 ### How is customer PII handled?
