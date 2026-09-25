@@ -398,7 +398,7 @@ LAN_PEER = "192.0.2.50"
 #: is the documented rebinding path (``adapters:`` in the settings file), not a test-only hook.
 _PKG = "soc_fraud_fusion"
 
-#: Every DATA port bound to its SDK-free local adapter (for local AND gcp), so these tests can
+#: Every DATA port bound to its SDK-free local adapter (for local, live AND gcp), so these tests can
 #: exercise the real gcp IDENTITY binding, and a full fuse over the serving path, without needing
 #: BigQuery, Model Armor, Gemini, Cloud Logging or a live console. ``local:Class`` / ``onprem``.
 _DATA_PORTS: tuple[tuple[str, str, str], ...] = (
@@ -415,7 +415,7 @@ _DATA_PORTS: tuple[tuple[str, str, str], ...] = (
 def _data_port_block(name: str, local_target: str, onprem_target: str) -> list[str]:
     return [
         f"  {name}:",
-        *[f"    {p}: {_PKG}.adapters.local.{local_target}" for p in ("local", "gcp")],
+        *[f"    {p}: {_PKG}.adapters.local.{local_target}" for p in ("local", "live", "gcp")],
         f"    onprem: {_PKG}.adapters.onprem.{onprem_target}",
     ]
 
@@ -432,6 +432,7 @@ _REBOUND_SETTINGS = "\n".join(
         *[line for spec in _DATA_PORTS for line in _data_port_block(*spec)],
         "  identity:",
         f"    local: {_PKG}.adapters.local.identity:LocalIdentityAdapter",
+        f"    live: {_PKG}.adapters.local.identity:LocalIdentityAdapter",
         f"    gcp: {_PKG}.adapters.gcp.identity:IapIdentityAdapter",
         f"    onprem: {_PKG}.adapters.onprem.identity:OnPremIdentityAdapter",
         # Every port must bind every profile or `_bindings_from` refuses the whole file.
@@ -439,10 +440,12 @@ _REBOUND_SETTINGS = "\n".join(
         # the rebuilt module SDK-free.
         "  tracer:",
         f"    local: {_PKG}.adapters.local.tracer:LocalNoopTracerAdapter",
+        f"    live: {_PKG}.adapters.local.tracer:LocalNoopTracerAdapter",
         f"    gcp: {_PKG}.adapters.local.tracer:LocalNoopTracerAdapter",
         f"    onprem: {_PKG}.adapters.onprem.tracer:OnPremTracerAdapter",
         "  evaluation:",
         f"    local: {_PKG}.adapters.local.evaluation:LocalOfflineEvalAdapter",
+        f"    live: {_PKG}.adapters.local.evaluation:LocalOfflineEvalAdapter",
         f"    gcp: {_PKG}.adapters.local.evaluation:LocalOfflineEvalAdapter",
         f"    onprem: {_PKG}.adapters.onprem.evaluation:OnPremEvalAdapter",
     ]

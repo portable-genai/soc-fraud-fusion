@@ -58,6 +58,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from hex_service_kit.identity import IdentityError, IdentityPort, Principal, RequestContext
 from hex_service_kit.logging import configure_logging
 from hex_service_kit.netdefaults import cors_allowlist, resolve_bind_host
@@ -79,6 +80,7 @@ from ..config import (
 )
 from ..domain.models import FusionRequest
 from ..factory import build_fusion_service
+from ..ports.generation import GenerationUnavailableError
 from ..ports.identity import VERIFIED, EndUserAuthUnavailableError
 from .schemas import FuseRequest, FuseResponse, HealthResponse
 
@@ -225,6 +227,17 @@ app = FastAPI(
 )
 app.state.profile_choice = _CHOICE
 app.state.profile = _CHOICE.profile
+
+
+@app.exception_handler(GenerationUnavailableError)
+def _generation_unavailable(_request: Request, exc: GenerationUnavailableError) -> JSONResponse:
+    """A model that produced no draft is a 503 (unreachable) or 502 (unusable), with the fix.
+
+    Raised before the audit write and the review hand-off, so nothing is half-recorded: the
+    caller retries once the model answers. The message carries the server start recipe.
+    """
+    return JSONResponse(status_code=exc.http_status, content={"detail": str(exc)})
+
 
 app.add_middleware(
     CORSMiddleware,

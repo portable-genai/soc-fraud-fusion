@@ -45,6 +45,10 @@ Hexagonal, ports and adapters:
 - `adapters/{local,gcp,onprem}/` are the three families. `local` is SDK-free and actually works;
   `gcp` imports its SDK LAZILY inside the method, so the other two profiles import it with no
   cloud SDK installed; `onprem` is a placeholder that RAISES rather than pretending.
+  `adapters/live/` holds the one adapter the laptop `live` profile adds: narration from a local
+  open-weight model (`LOCAL_MODEL_URL` / `LOCAL_MODEL`) through the shared
+  `hex_service_kit.localmodel` client. Every other port under `live` binds its `local` adapter,
+  and `live` takes the `local` posture (`config.posture_of`). The gate never runs it.
 - `config.py` resolves the profile and binds every port. `config/settings.yaml` carries the
   binding table, so switching a port is configuration, not a code edit.
 - `agent/` is the optional-but-scaffolded agent surface: plain tool callables plus the A2A card.

@@ -141,7 +141,12 @@ def test_silence_and_typos_are_read_as_client_asserted(adapter: object) -> None:
 
 @pytest.mark.parametrize(
     ("profile", "expected"),
-    [("local", CLIENT_ASSERTED), ("gcp", VERIFIED), ("onprem", UNIMPLEMENTED)],
+    [
+        ("local", CLIENT_ASSERTED),
+        ("live", CLIENT_ASSERTED),
+        ("gcp", VERIFIED),
+        ("onprem", UNIMPLEMENTED),
+    ],
 )
 def test_the_posture_follows_the_profile_binding(profile: str, expected: str) -> None:
     assert end_user_auth_kind(local_settings(profile=profile)) == expected

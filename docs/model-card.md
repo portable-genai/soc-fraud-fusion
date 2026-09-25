@@ -74,6 +74,7 @@ The narration edge:
 | Profile | Generation adapter | Behaviour |
 |---|---|---|
 | `local` | `adapters/local/generation.py` | Deterministic grounded template built from engine facts, passages and grounding. SDK-free, no network. Also the fallback the orchestrator uses when a managed draft fails validation. |
+| `live` | `adapters/live/generation.py` | A local open-weight model (default `mlx-community/gemma-4-31b-it-8bit` at `LOCAL_MODEL_URL`) through the shared `hex_service_kit.localmodel` client. The adapter asks for a JSON draft (`narrative`, `runbook`); the kit validates it and feeds a problem back up to twice. The orchestrator's groundedness check still discards a draft that restates a foreign figure. Unreachable model: 503; unusable output: 502. |
 | `gcp` | `adapters/gcp/generation.py` | Gemini on Vertex AI through the Google GenAI SDK, imported lazily inside `narrate`. Model id from `generation_model`. |
 | `onprem` | `adapters/onprem/generation.py` | Fail-fast placeholder: raises `NotImplementedError` naming the client-hosted model as the migration target. |
 
@@ -83,6 +84,7 @@ Two neighbouring ports change what the model sees, so they belong on this card:
 |---|---|---|
 | `local` | Pure fixture lookup against the synthetic intel set (`adapters/local/grounding.py`). **No model is involved**, and an unresolved indicator simply produces no hit. | Naive term-overlap ranking over a fixture runbook corpus (`adapters/local/retrieval.py`). No model, no network. |
 | `gcp` | `adapters/gcp/grounding.py` makes a SECOND generative call per indicator, on the same `generation_model`, and stores the reply text as both the verdict and the citation snippet. | `adapters/gcp/retrieval.py` queries the `enterprise-knowledge-base` governed knowledge base through Discovery Engine search. Not a model call. |
+| `live` | The `local` fixture lookup, unchanged. A local model has no threat-intel feed, so asking it for an indicator verdict would be an invented citation. | The `local` ranking, unchanged. |
 | `onprem` | Fail-fast placeholder. | Fail-fast placeholder. |
 
 Both are advisory to narration only. An incident's score, band, techniques and recommendation are

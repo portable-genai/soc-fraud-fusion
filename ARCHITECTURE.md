@@ -82,6 +82,10 @@ the review maker are both the verified `Principal`, never the request body.
 | `IdentityPort` | seeded personas (commons) | IAP assertion (lazy) | placeholder |
 | `ReviewRouterPort` | review-kit outbox (offline, inspectable) | `human-review-console` service intake over S2S | placeholder |
 
+The laptop `live` profile binds the `local` column for every port except `GenerationPort`, which
+calls a local open-weight model through the shared `hex_service_kit.localmodel` client
+(`adapters/live/generation.py`).
+
 The on-prem placeholders RAISE. A review router that silently returned would convert every
 consequential result into an unreviewed one, which is worse than a missing feature.
 
