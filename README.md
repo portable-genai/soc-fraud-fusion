@@ -60,6 +60,14 @@ One env var, `FRAUDFUSION_PROFILE`, selects the adapter family:
 
 - `local` (default) : SDK-free offline stack (seeded dev personas, hash-chained SQLite WORM audit
   from the commons). No cloud SDK. The default for dev/test/CI.
+- `live` : the `local` laptop stack with ONE difference: narration comes from a local open-weight
+  model through the shared `hex_service_kit.localmodel` client (`LOCAL_MODEL_URL`, default
+  `http://127.0.0.1:8001/chat/completions`; `LOCAL_MODEL`, default
+  `mlx-community/gemma-4-31b-it-8bit`). Start the server with
+  `.mlx-venv/bin/python -m mlx_vlm.server --model mlx-community/gemma-4-31b-it-8bit --port 8001`
+  (after `uv venv --python 3.13 .mlx-venv && uv pip install --python .mlx-venv mlx-vlm`), then
+  `FRAUDFUSION_PROFILE=live make run-api`. Unreachable model: 503 with that recipe;
+  unusable output after two corrections: 502. Tests, CI and `make demo` stay on `local`.
 - `gcp` : managed cloud (Cloud Logging WORM, IAP identity). SDK imports are lazy.
 - `onprem` : fail-fast `NotImplementedError` placeholders (the reversibility proof, P-12).
 

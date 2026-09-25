@@ -8,7 +8,7 @@ import sys
 from hex_service_kit.logging import configure_logging
 
 from ..adapters.controls import RecordingReviewRouter
-from ..config import build_container
+from ..config import build_container, posture_of
 from ..domain.models import FusionRequest
 from ..factory import build_fusion_service
 
@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     container = build_container()
     # Idempotent: a process that is both an API app and a CLI configures once.
-    configure_logging(container.settings.profile, service="soc-fraud-fusion")
+    configure_logging(posture_of(container.settings.profile), service="soc-fraud-fusion")
 
     if args.command == "fuse":
         service = build_fusion_service(container)

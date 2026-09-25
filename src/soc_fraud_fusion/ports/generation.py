@@ -15,6 +15,20 @@ from typing import Protocol, runtime_checkable
 from ..domain.models import NarrationDraft, NarrationRequest
 
 
+class GenerationUnavailableError(RuntimeError):
+    """The bound model produced no draft at all: its server did not answer, or nothing it said
+    was usable. Carries the HTTP status the API answers with (503 unreachable, 502 unusable) and
+    a message naming the fix, so an operator is not handed a bare 500.
+
+    A draft that ARRIVES but restates a figure the engine did not produce is a different case:
+    the orchestrator discards it for the deterministic fallback, and nothing is raised.
+    """
+
+    def __init__(self, message: str, *, http_status: int) -> None:
+        super().__init__(message)
+        self.http_status = http_status
+
+
 @runtime_checkable
 class GenerationPort(Protocol):
     def narrate(self, request: NarrationRequest) -> NarrationDraft:

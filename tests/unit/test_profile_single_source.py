@@ -40,10 +40,12 @@ from hex_service_kit.netdefaults import ConfiguredEmptyError
 
 from soc_fraud_fusion.config import (
     KNOWN_PROFILES,
+    LAPTOP_PROFILES,
     LOCAL_PROFILE,
     PROFILE_CHOICE,
     UNCONSENTED_PROFILE,
     Settings,
+    posture_of,
     resolve_profile,
 )
 
@@ -173,7 +175,24 @@ def test_the_two_derived_postures_disagree_exactly_when_nobody_chose() -> None:
     assert unconsented.exposure_profile != unconsented.bind_profile
     for profile in KNOWN_PROFILES:
         chosen = resolve_profile({_PROFILE_ENV: profile})
-        assert chosen.exposure_profile == chosen.bind_profile == profile
+        assert chosen.exposure_profile == chosen.bind_profile == posture_of(profile)
+
+
+def test_every_laptop_profile_takes_the_local_posture_and_nothing_else_does() -> None:
+    """``live`` is ``local`` with a local model narrating: same relaxations, same loopback bound.
+
+    A laptop profile that missed the posture would lose the seeded personas and the docs while
+    keeping the loopback bound, or worse, a managed profile folded into it would gain them.
+    """
+    assert {LOCAL_PROFILE, "live"} == LAPTOP_PROFILES
+    live = resolve_profile({_PROFILE_ENV: "live"})
+    assert (live.profile, live.exposure_profile, live.bind_profile) == (
+        "live",
+        LOCAL_PROFILE,
+        LOCAL_PROFILE,
+    )
+    for profile in set(KNOWN_PROFILES) - LAPTOP_PROFILES:
+        assert posture_of(profile) == profile
 
 
 def test_settings_carry_the_deliberateness_and_direct_construction_is_deliberate() -> None:

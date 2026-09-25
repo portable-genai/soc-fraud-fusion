@@ -66,33 +66,44 @@ generation_model: ${FRAUDFUSION_GENERATION_MODEL:-gemini-3.5-flash}
 # configuration change rather than a code edit. Every port must bind every profile; the loader
 # refuses a partial block and `tests/test_settings_file.py` fails the build if this drifts from
 # `config.DEFAULT_BINDINGS`.
+#
+# `live` is the laptop run with a local open-weight model narrating: it binds exactly what `local`
+# binds except `generation`, which calls the model at LOCAL_MODEL_URL through the shared
+# hex_service_kit.localmodel client.
 adapters:
   alerts:
     local: soc_fraud_fusion.adapters.local.alerts:LocalAlertFeed
+    live: soc_fraud_fusion.adapters.local.alerts:LocalAlertFeed
     gcp: soc_fraud_fusion.adapters.gcp.alerts:BigQueryAlertFeed
     onprem: soc_fraud_fusion.adapters.onprem.alerts:OnPremAlertFeed
   audit:
     local: soc_fraud_fusion.adapters.local.audit:LocalAuditAdapter
+    live: soc_fraud_fusion.adapters.local.audit:LocalAuditAdapter
     gcp: soc_fraud_fusion.adapters.gcp.audit:CloudAuditAdapter
     onprem: soc_fraud_fusion.adapters.onprem.audit:OnPremAuditAdapter
   generation:
     local: soc_fraud_fusion.adapters.local.generation:LocalGeneration
+    live: soc_fraud_fusion.adapters.live.generation:LocalModelGeneration
     gcp: soc_fraud_fusion.adapters.gcp.generation:GeminiGeneration
     onprem: soc_fraud_fusion.adapters.onprem.generation:OnPremGeneration
   grounding:
     local: soc_fraud_fusion.adapters.local.grounding:LocalGrounding
+    live: soc_fraud_fusion.adapters.local.grounding:LocalGrounding
     gcp: soc_fraud_fusion.adapters.gcp.grounding:GroundingSearchAdapter
     onprem: soc_fraud_fusion.adapters.onprem.grounding:OnPremGrounding
   identity:
     local: soc_fraud_fusion.adapters.local.identity:LocalIdentityAdapter
+    live: soc_fraud_fusion.adapters.local.identity:LocalIdentityAdapter
     gcp: soc_fraud_fusion.adapters.gcp.identity:IapIdentityAdapter
     onprem: soc_fraud_fusion.adapters.onprem.identity:OnPremIdentityAdapter
   retrieval:
     local: soc_fraud_fusion.adapters.local.retrieval:LocalRetrieval
+    live: soc_fraud_fusion.adapters.local.retrieval:LocalRetrieval
     gcp: soc_fraud_fusion.adapters.gcp.retrieval:Hrz2RetrievalAdapter
     onprem: soc_fraud_fusion.adapters.onprem.retrieval:OnPremRetrieval
   review_router:
     local: soc_fraud_fusion.adapters.local.review_router:LocalReviewRouter
+    live: soc_fraud_fusion.adapters.local.review_router:LocalReviewRouter
     gcp: soc_fraud_fusion.adapters.gcp.review_router:CloudReviewRouter
     onprem: soc_fraud_fusion.adapters.onprem.review_router:OnPremReviewRouter
 
@@ -102,6 +113,7 @@ adapters:
   # correctness, so onprem is ABSENT rather than fatal, unlike the other placeholders.
   tracer:
     local: soc_fraud_fusion.adapters.local.tracer:LocalNoopTracerAdapter
+    live: soc_fraud_fusion.adapters.local.tracer:LocalNoopTracerAdapter
     gcp: soc_fraud_fusion.adapters.gcp.tracer:CloudTracerAdapter
     onprem: soc_fraud_fusion.adapters.onprem.tracer:OnPremTracerAdapter
 
@@ -110,9 +122,11 @@ adapters:
   # nothing.
   evaluation:
     local: soc_fraud_fusion.adapters.local.evaluation:LocalOfflineEvalAdapter
+    live: soc_fraud_fusion.adapters.local.evaluation:LocalOfflineEvalAdapter
     gcp: soc_fraud_fusion.adapters.gcp.evaluation:ManagedEvalGateAdapter
     onprem: soc_fraud_fusion.adapters.onprem.evaluation:OnPremEvalAdapter
   safety:
     local: soc_fraud_fusion.adapters.local.safety:LocalSafety
+    live: soc_fraud_fusion.adapters.local.safety:LocalSafety
     gcp: soc_fraud_fusion.adapters.gcp.safety:ModelArmorSafetyAdapter
     onprem: soc_fraud_fusion.adapters.onprem.safety:OnPremSafety
