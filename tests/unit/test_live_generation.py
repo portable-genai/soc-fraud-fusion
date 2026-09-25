@@ -101,7 +101,7 @@ def test_live_binds_what_local_binds_except_the_model_port() -> None:
     assert differing == {"generation"}
 
 
-def test_the_banner_names_the_local_model_under_live(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_model_pill_names_the_local_model_under_live(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("LOCAL_MODEL", raising=False)
     settings = _live_settings()
     assert settings.runtime == "local"

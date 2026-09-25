@@ -7,6 +7,8 @@ the score or the band.
 
 from __future__ import annotations
 
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...domain.kernel import Citation
 from ...domain.models import GroundingHit, GroundingKind
@@ -20,14 +22,21 @@ class GroundingSearchAdapter:
 
     def lookup(self, indicators: tuple[str, ...]) -> list[GroundingHit]:  # pragma: no cover
         from google import genai  # noqa: PLC0415 - lazy
+        from google.genai import types  # noqa: PLC0415 - lazy
 
         client = genai.Client(vertexai=True, location=self._settings.region)
+        model = self._settings.generation_model
+        # A verdict is a classification that is cited and compared, so this call is PINNED.
+        # No online search tool is attached to it, so it notes the model and never a search.
+        config = types.GenerateContentConfig(temperature=0.0)
         out: list[GroundingHit] = []
         for indicator in indicators:
             response = client.models.generate_content(
-                model=self._settings.generation_model,
+                model=model,
                 contents=f"Resolve the threat-intel verdict for indicator {indicator}.",
+                config=config,
             )
+            provenance.note_model(model)
             out.append(
                 GroundingHit(
                     indicator=indicator,
