@@ -13,9 +13,9 @@
 #
 # The malicious-URI filter and multi-language detection are NOT served in every region: a region
 # that refuses them fails the whole template with CAPABILITY_NOT_SUPPORTED rather than degrading,
-# so both are gated on var.model_armor_full_capabilities (default true) and a deployment in such
-# a region sets it false explicitly and discloses the narrowed guardrail instead of failing every
-# apply (terraform.tfvars.example states false for asia-southeast1).
+# so both are gated on var.model_armor_full_capabilities, which defaults to false (slice 7 of the
+# posture rule: a control that is not irreversible defaults off in code). A deployment in a region
+# that serves both states true; terraform.tfvars.example states false for asia-southeast1.
 #
 # verify: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/model_armor_template
 

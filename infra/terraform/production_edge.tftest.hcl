@@ -472,15 +472,14 @@ run "edge_with_both_controls_stated_off_needs_neither_console_nor_template" {
   }
 }
 
-# Rule R1: the guardrail template exists in the deployment region, and the regional capabilities
-# are declined only when stated.
-run "guardrail_template_is_regional_and_narrows_only_when_stated" {
+# Rule R1: the guardrail template exists in the deployment region. Slice 7 of the posture rule:
+# the regional capabilities are not irreversible, so they default off and arrive when stated.
+run "guardrail_template_is_regional_and_narrow_by_default" {
   command = plan
 
   variables {
-    project_id                    = "fictional-agent-project"
-    enable_vpc_sc                 = false
-    model_armor_full_capabilities = false
+    project_id    = "fictional-agent-project"
+    enable_vpc_sc = false
   }
 
   assert {
@@ -495,7 +494,7 @@ run "guardrail_template_is_regional_and_narrows_only_when_stated" {
 
   assert {
     condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 0
-    error_message = "model_armor_full_capabilities = false must decline the malicious-URI filter."
+    error_message = "model_armor_full_capabilities defaults to false: the malicious-URI filter arrives only when stated."
   }
 
   assert {
@@ -504,16 +503,17 @@ run "guardrail_template_is_regional_and_narrows_only_when_stated" {
   }
 }
 
-run "guardrail_template_asks_for_every_capability_by_default" {
+run "guardrail_template_asks_for_every_capability_when_stated" {
   command = plan
 
   variables {
-    project_id    = "fictional-agent-project"
-    enable_vpc_sc = false
+    project_id                    = "fictional-agent-project"
+    enable_vpc_sc                 = false
+    model_armor_full_capabilities = true
   }
 
   assert {
     condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 1
-    error_message = "The default must ask for the whole guardrail; narrowing is a stated decision."
+    error_message = "Stated true, the template must ask for the whole guardrail."
   }
 }
