@@ -154,9 +154,9 @@ class FusionService:
         as_of = as_of or utcnow().isoformat()
 
         # 1. Screen the alert text BEFORE it could reach the generator. It is already masked, so
-        #    the screen (and any managed screening log) never sees a raw identifier either.
-        joined = " ".join(a.detail for a in raw)
-        input_verdict = self._safety.screen(joined, Direction.INPUT)
+        #    the screen (and any managed screening log) never sees a raw identifier either. The
+        #    caller's subject is screened with it: it is a free string and the prompt carries it.
+        input_verdict = self._safety.screen(_screened_input(request.subject, raw), Direction.INPUT)
 
         # 2. Correlate with the pure engine. This is the consequential step and it is untouched by
         #    the safety verdict: the score reflects the structured signals, not the free text.
@@ -175,8 +175,10 @@ class FusionService:
         #    fallback records the block instead, so injected alert text cannot reach the model.
         narration = self._narrate(incident, passages, grounding, input_ok=input_verdict.allowed)
 
-        # 5. Screen the output; a blocked draft is replaced by the deterministic fallback.
-        if not self._safety.screen(narration.narrative, Direction.OUTPUT).allowed:
+        # 5. Screen the output; a blocked draft is replaced by the deterministic fallback. The
+        #    runbook steps are model-written too and reach the caller, so they are screened with
+        #    the narrative rather than after it.
+        if not self._safety.screen(_screened_output(narration), Direction.OUTPUT).allowed:
             narration = _fallback(incident, passages, grounding, blocked="output")
 
         citations = self._citations(incident, passages, grounding)
@@ -257,6 +259,24 @@ class FusionService:
             seen.add(citation.source_id)
             out.append(citation)
         return tuple(out)
+
+
+def _screened_input(subject: str, alerts: tuple[Alert, ...]) -> str:
+    """Render everything caller- or source-written that the generator's prompt can carry.
+
+    The alert details were screened alone while the caller's ``subject``, a free string, went
+    into the prompt unscreened. Both are rendered here so the INPUT screen sees all of it.
+    """
+    return " ".join((subject, *(a.detail for a in alerts)))
+
+
+def _screened_output(draft: NarrationDraft) -> str:
+    """Render every model-written field of a draft that reaches the caller.
+
+    Only the narrative was screened, yet the runbook is parsed from whatever the model writes
+    after ``RUNBOOK:`` and is returned to the caller verbatim, so each step is screened with it.
+    """
+    return "\n".join((draft.narrative, *draft.runbook))
 
 
 def _valid(draft: NarrationDraft, incident: Incident) -> bool:
