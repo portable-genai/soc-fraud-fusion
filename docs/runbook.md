@@ -159,7 +159,7 @@ under `gcp`, the marker heuristic locally), read in three states: unset is on, `
 `on`/`off`) wins, and an emptied or unrecognised value refuses at boot. On under `gcp`, the
 service refuses to boot unless `FRAUDFUSION_MODEL_ARMOR_TEMPLATE` and `FRAUDFUSION_PROJECT_ID`
 name the template and project it screens through; Terraform states them as `guardrail_enabled`,
-`model_armor_template` and `project_id`, and grants `roles/modelarmor.user` only while the
+the template `model_armor.tf` creates, and `project_id`, and grants `roles/modelarmor.user` only while the
 guardrail is on. Off binds an allow-all adapter and logs one warning at startup.
 
 ## Supply chain

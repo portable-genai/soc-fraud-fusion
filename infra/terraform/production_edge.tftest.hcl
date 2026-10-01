@@ -18,6 +18,7 @@
 # it assert the audit-log name is derived rather than pinned by hand.
 
 mock_provider "google" {}
+mock_provider "google-beta" {}
 
 
 # worm_locked has NO DEFAULT (variables.tf): the audit bucket's lock is irreversible, so a plan
@@ -154,7 +155,6 @@ run "serving_edge_contract" {
     project_id                  = "fictional-agent-project"
     enable_vpc_sc               = false
     production_edge_enabled     = true
-    model_armor_template        = "fraudfusion-guardrail"
     api_image                   = "example-docker.pkg.dev/fictional-agent-project/agent/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     service_domain              = "agent.fictional-bank.example"
     human_review_url            = "https://review.fictional-bank.example"
@@ -293,7 +293,6 @@ run "reject_mutable_api_image" {
     project_id                  = "fictional-agent-project"
     enable_vpc_sc               = false
     production_edge_enabled     = true
-    model_armor_template        = "fraudfusion-guardrail"
     api_image                   = "example-docker.pkg.dev/fictional-agent-project/agent/api:latest"
     service_domain              = "agent.fictional-bank.example"
     human_review_url            = "https://review.fictional-bank.example"
@@ -310,7 +309,6 @@ run "reject_edge_with_no_review_console" {
     project_id                  = "fictional-agent-project"
     enable_vpc_sc               = false
     production_edge_enabled     = true
-    model_armor_template        = "fraudfusion-guardrail"
     api_image                   = "example-docker.pkg.dev/fictional-agent-project/agent/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     service_domain              = "agent.fictional-bank.example"
     human_review_url            = ""
@@ -327,7 +325,6 @@ run "reject_edge_with_no_alert_channel" {
     project_id                  = "fictional-agent-project"
     enable_vpc_sc               = false
     production_edge_enabled     = true
-    model_armor_template        = "fraudfusion-guardrail"
     api_image                   = "example-docker.pkg.dev/fictional-agent-project/agent/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     service_domain              = "agent.fictional-bank.example"
     human_review_url            = "https://review.fictional-bank.example"
@@ -416,7 +413,6 @@ run "edge_states_both_switches_and_the_guardrail_template" {
     service_domain              = "agent.fictional-bank.example"
     alert_notification_channels = ["projects/fictional-agent-project/notificationChannels/123"]
     human_review_url            = "https://review.fictional-bank.example"
-    model_armor_template        = "fraudfusion-guardrail"
   }
 
   assert {
@@ -440,23 +436,6 @@ run "edge_states_both_switches_and_the_guardrail_template" {
   }
 }
 
-run "reject_edge_with_guardrail_on_and_no_template" {
-  command = plan
-
-  variables {
-    project_id                  = "fictional-agent-project"
-    enable_vpc_sc               = false
-    production_edge_enabled     = true
-    api_image                   = "example-docker.pkg.dev/fictional-agent-project/agent/api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    service_domain              = "agent.fictional-bank.example"
-    alert_notification_channels = ["projects/fictional-agent-project/notificationChannels/123"]
-    human_review_url            = "https://review.fictional-bank.example"
-    model_armor_template        = ""
-  }
-
-  expect_failures = [var.model_armor_template]
-}
-
 run "edge_with_both_controls_stated_off_needs_neither_console_nor_template" {
   command = plan
 
@@ -470,7 +449,6 @@ run "edge_with_both_controls_stated_off_needs_neither_console_nor_template" {
     human_review_url            = ""
     review_routing_enabled      = false
     guardrail_enabled           = false
-    model_armor_template        = ""
   }
 
   assert {
@@ -485,11 +463,57 @@ run "edge_with_both_controls_stated_off_needs_neither_console_nor_template" {
 
   assert {
     condition     = length([for item in google_cloud_run_v2_service.api[0].template[0].containers[0].env : item.name if endswith(item.name, "_MODEL_ARMOR_TEMPLATE")]) == 0
-    error_message = "an unnamed template must be left off the service, never set empty"
+    error_message = "a guardrail stated off must not be handed a template"
   }
 
   assert {
     condition     = !contains(keys(google_project_iam_member.app), "roles/modelarmor.user")
     error_message = "a switched-off guardrail calls nothing, so nothing is granted for it"
+  }
+}
+
+# Rule R1: the guardrail template exists in the deployment region, and the regional capabilities
+# are declined only when stated.
+run "guardrail_template_is_regional_and_narrows_only_when_stated" {
+  command = plan
+
+  variables {
+    project_id                    = "fictional-agent-project"
+    enable_vpc_sc                 = false
+    model_armor_full_capabilities = false
+  }
+
+  assert {
+    condition     = google_model_armor_template.guardrail.location == local.region
+    error_message = "The Model Armor template must be created in the deployment region, never global (P-05)."
+  }
+
+  assert {
+    condition     = google_model_armor_template.guardrail.template_id == "fraudfusion-guardrail"
+    error_message = "The template id is the one the serving edge hands the service."
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 0
+    error_message = "model_armor_full_capabilities = false must decline the malicious-URI filter."
+  }
+
+  assert {
+    condition     = google_model_armor_template.guardrail.template_metadata[0].ignore_partial_invocation_failures == false
+    error_message = "A screen where filters were skipped must never be reported as complete."
+  }
+}
+
+run "guardrail_template_asks_for_every_capability_by_default" {
+  command = plan
+
+  variables {
+    project_id    = "fictional-agent-project"
+    enable_vpc_sc = false
+  }
+
+  assert {
+    condition     = length(google_model_armor_template.guardrail.filter_config[0].malicious_uri_filter_settings) == 1
+    error_message = "The default must ask for the whole guardrail; narrowing is a stated decision."
   }
 }

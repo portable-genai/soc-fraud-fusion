@@ -280,15 +280,18 @@ variable "guardrail_enabled" {
   default     = true
 }
 
-variable "model_armor_template" {
-  description = "The Model Armor template id (in this project and region) the guardrail screens through. Required when the edge is enabled with the guardrail on: the service refuses to boot without one rather than building a malformed URL at the first screen."
-  type        = string
-  default     = ""
+variable "model_armor_full_capabilities" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    Whether the guardrail template (model_armor.tf) asks for the capabilities that are not
+    served in every region: the malicious-URI filter and multi-language detection.
 
-  validation {
-    condition     = !var.production_edge_enabled || !var.guardrail_enabled || can(regex("^[a-z0-9][a-z0-9_-]*$", var.model_armor_template))
-    error_message = "production_edge_enabled with guardrail_enabled requires model_armor_template: the service refuses to boot with the guardrail on and no template named. Name one, or set guardrail_enabled = false."
-  }
+    True by default, because a deployment should get the whole guardrail unless it has a
+    reason not to. Some regions serve neither, and Model Armor does not degrade -- it refuses
+    the whole template with CAPABILITY_NOT_SUPPORTED, so a deployment in such a region must
+    set this false explicitly and disclose the narrowed guardrail rather than fail every apply.
+  EOT
 }
 
 variable "review_routing_enabled" {
