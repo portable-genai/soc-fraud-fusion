@@ -83,7 +83,11 @@ review_routing_enabled = true
 # The Model Armor guardrail on the safety port. On in the reference; on requires the template id
 # it screens through (the service refuses to boot without one). false runs unscreened and says so.
 guardrail_enabled = true
-# model_armor_template = "fraudfusion-guardrail"
+# The template it screens through is created by model_armor.tf and handed to the service by the
+# serving edge. asia-southeast1 does not serve the malicious-URI filter or multi-language
+# detection and refuses the WHOLE template with CAPABILITY_NOT_SUPPORTED, so a deployment there
+# states false and discloses the narrowed guardrail; a region that serves both leaves it true.
+model_armor_full_capabilities = false
 
 # Rule R5 and rule R2: the model-quality-gate promotion authority and the agent-observability collector. Leave a
 # variable out entirely rather than setting it to an empty string; empty is read as a
